@@ -8,14 +8,16 @@ read -p "Enter your choice 1, 2, 3, 4:  " choice
 
 if [[ $choice -eq 1 ]]; then
     npm create vite@latest
-    # Add your desired actions for choice 1 here
 elif [[ $choice -eq 2 ]]; then
     npx create-next-app@latest
 elif [[ $choice -eq 3 ]]; then
     npm init
 elif [[ $choice -eq 4 ]]; then
-	read -p "enter the project name: " value
+	read -p "enter the rust project name: " value
 	cargo new $value
+elif [[ $choice -eq 5 ]]; then
+	read -p "enter the app name: " value
+	flutter create $value
 else
     echo "Invalid choice. Please enter either 1, 2, 3 or 4."
 fi
