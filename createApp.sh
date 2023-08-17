@@ -1,4 +1,5 @@
 #!/bin/bash
+
 echo "do you wish to: "
 echo "1) Create a React App"
 echo "2) Create a Next App"
@@ -12,13 +13,17 @@ elif [[ $choice -eq 2 ]]; then
     npx create-next-app@latest
 elif [[ $choice -eq 3 ]]; then
     npm init
-elif [[ $choice -eq 4 ]]; then
+elif [[ $choice -eq 4 || $choice -eq 5 ]]; then
 	read -p "enter the rust project name: " value
-	cargo new $value
-elif [[ $choice -eq 5 ]]; then
-	read -p "enter the app name: " value
-	flutter create $value
+	
+	if [[ $choice -eq 4 ]]; then
+		cargo new $value
+	elif [[ $choice -eq 5 ]]; then
+		flutter create $value
+	fi
+
 else
     echo "Invalid choice. Please enter either 1, 2, 3 or 4."
+    echo "aborting application."
 fi
 
