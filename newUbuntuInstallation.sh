@@ -25,7 +25,7 @@ apt install meld fzf xclip curl -y
 
 echo "----------------------------------------------------------------------"
 echo ">>>>>>>>>>>>>>the following will be installed in the donwloads folder.<<<<<<<<<<<<<<<<<<"
-cd /home/$USER/Downloads
+cd ~/Downloads
 
 echo "----------------------------------------------------------------------"
 echo "installing vs code"
@@ -46,8 +46,6 @@ wget -qO - https://download.sublimetext.com/sublimehq-pub.gpg | gpg --dearmor | 
 echo "deb https://download.sublimetext.com/ apt/stable/" | sudo tee /etc/apt/sources.list.d/sublime-text.list
 sudo apt-get update
 sudo apt-get install sublime-text
-
-
 
 echo "----------------------------------------------------------------------"
 echo "installing brave browser"
