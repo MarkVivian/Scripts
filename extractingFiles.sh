@@ -17,7 +17,7 @@ else
 fi
 
 if [[ $choice = "y" ]]; then
-	read -p "please pass the path to the file: eg /path/to/location" location
+	read -p "please pass the path to the file: eg /path/to/location:    " location
 else
 	location="."
 fi
