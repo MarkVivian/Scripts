@@ -16,10 +16,13 @@ case $userChoice in
 		echo "git checkout -b $branch_name"
 		;;
 	3)
+		# will run the gitPush script before switching branches.
+		source ./gitPush.sh
 		git checkout main
 		git merge $branch_name
 		echo "Conjoining (Merging) with the main branch using command"
 		echo "git merge $branch_name"
+		. ./gitPush.sh <<< "merged the $branch_name"
 		;;
 	4)
 		git checkout $branch_name
@@ -36,3 +39,4 @@ case $userChoice in
 		echo "Invalid choice. Please enter a valid option."
 		;;
 esac
+echo "done"
