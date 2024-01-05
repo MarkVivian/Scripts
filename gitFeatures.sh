@@ -27,7 +27,7 @@ case $userChoice in
 	4)
 		git checkout $branch_name
 		echo "Switching branches using the command"
-		echo "git checkout branch"
+		echo "git checkout $branch_name"
 		;;
 	2)
 		git branch -d $branch_name
