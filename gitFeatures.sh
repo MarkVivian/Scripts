@@ -7,7 +7,7 @@ echo "3) join branch with main"
 echo "4) switch branches"
 
 read -p "what option do you choose: " userChoice
-read -p "enter the new branch name: " branch_name
+read -p "enter the branch name: " branch_name
 
 case $userChoice in
 	1)
