@@ -1,3 +1,16 @@
+# Function to check if the script is run with administrative privileges
+function Test-Admin {
+    $currentUser = [Security.Principal.WindowsIdentity]::GetCurrent()
+    $principal = New-Object Security.Principal.WindowsPrincipal($currentUser)
+    return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+}
+
+if (-not (Test-Admin)) {
+    Write-Host "This script must be run with administrative privileges."
+    Write-Host "Please run this script in an elevated PowerShell window."
+    exit
+}
+
 # Check the current execution policy
 $currentPolicy = Get-ExecutionPolicy
 
