@@ -31,7 +31,7 @@ try {
     # Define the path for the output file
     $outputFile = Join-Path $scriptDir "WifiProfilesAndKeys.txt"
 
-    # Read existing content from the output file if it exists
+    # Read existing content from the output file if it exists using the test-path command.
     if (Test-Path $outputFile) {
         # Read the entire content of the file into a single string
         $existingContent = Get-Content $outputFile -Raw
@@ -62,7 +62,7 @@ try {
         }
 
         # Create a formatted entry for the new profile
-        $entry = "Profile: $profile`nKey: $profileKey`n"
+        $entry = "Profile: $profile `n Key: $profileKey `n"
 
         # Check if the profile with the same key already exists in the existing content (case-sensitive)
         if ($existingContent -match "Profile: $profile`nKey: $profileKey`n") {
