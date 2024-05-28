@@ -1,26 +1,5 @@
 # Function to check if the script is run with administrative privileges
-function Test-Admin {
-    $currentUser = [Security.Principal.WindowsIdentity]::GetCurrent()
-    $principal = New-Object Security.Principal.WindowsPrincipal($currentUser)
-    return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-}
-
-if (-not (Test-Admin)) {
-    Write-Host "This script must be run with administrative privileges."
-    Write-Host "Please run this script in an elevated PowerShell window."
-    exit
-}
-
-# Check the current execution policy
-$currentPolicy = Get-ExecutionPolicy
-
-# If the policy is restricted or all signed, prompt the user to change it
-if ($currentPolicy -eq "Restricted" -or $currentPolicy -eq "AllSigned") {
-    Write-Host "The current execution policy is $currentPolicy. Please change it to RemoteSigned to run this script."
-    Write-Host "You can do this by running the following command in an elevated PowerShell window:"
-    Write-Host "Set-ExecutionPolicy RemoteSigned"
-    exit
-}
+# run the file in remotesigned execution policy.
 
 
 
