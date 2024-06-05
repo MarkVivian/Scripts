@@ -125,7 +125,65 @@ try {
 
     # this function should perform pararrel processing when checking if it exists.
     # this is the heavy weight of the entire script.
-`
+    function check_if_exists{
+        param(
+            $entry_data
+        )
+        $profile_per_job=[math]::Ceiling($entry_list_count / $number_of_jobs)
+
+        $jobs=@()
+        $current_match_state=$false
+        for ($i = 0; $i -lt $number_of_jobs; $i++) {
+            # this will get the profiles that each job will handle.
+            $start = $i * $profile_per_job
+            $end = [math]::Min($start + $profile_per_job, $entry_data.Count)
+            
+            # this divides the entries per job
+            $sub_entries = $entry_data[$start..($end - 1)]
+
+            $jobs += Start-Job -ScriptBlock {
+                param (
+                    $entries,
+                    $existing_content_list
+                )
+                $outputContentValue = @()
+                foreach ($entry in $entries) {
+                    $test_subject_1 = ($entry -Split "`n" | ForEach-Object {
+                        $_ -replace ".*: ", ""
+                    })
+                    $profile_name_1 = $test_subject_1[0]
+                    $profile_key_1 = $test_subject_1[1]
+                   foreach($inform in $existing_content_list){
+                        $profile_name_2 = $inform.profile_name | ForEach-Object{
+                            $_ -replace ".*: ", ""
+                        }
+                        $profile_key_2 = $inform.profile_key | ForEach-Object{
+                            $_ -replace ".*: ", ""
+                        }
+                        if($profile_name_1.Trim() -eq $profile_name_2.Trim() -and $profile_key_1.Trim() -eq $profile_key_2.Trim()){
+                           $current_match_state = $true
+                           break
+                        }
+                   }  
+                   if (-not $current_match_state){
+                           $outputContentValue += "Profile: $profile_name_1 `n Key: $profile_key_1 `n"
+                           Write-Host "new addition $profile_name_1"
+                           $number_of_new_additions = $number_of_new_additions + 1
+                   }
+                   $current_match_state = $false
+                }
+                return $outputContentValue
+            } -ArgumentList $sub_entries, $existing_content_list
+        }
+        
+        foreach ($job in $jobs){
+            $jobs_results = Receive-Job -Job $job -Wait
+            # Write-Host $jobs_results
+            $outputContent += $jobs_results
+            Remove-Job -Job $job
+        }
+        return $outputContent
+    }
 
     if ($existence){
         $outputContent = check_if_exists -entry_data $entry_list

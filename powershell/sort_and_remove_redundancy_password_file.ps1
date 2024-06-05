@@ -8,8 +8,6 @@ class ServerInfo{
 }
 
 try {
-
-
     $get_data_to_sort = get-content $path_to_file -Raw
 
     # Get the directory where the script is located
@@ -49,6 +47,13 @@ try {
         return $content_list
     }
 
+    function testing_something{
+        param(
+            $sorted_unique_test
+        )
+
+    }
+
     function Remove-Redundancy{
         param (
             $sorted_data
@@ -59,7 +64,9 @@ try {
         $sorted_unique = @()
 
         foreach ($item in $sorted_data) {
-            if ($item.profile_key -ne $previous_item_profile_key -or $item.profile_name -ne $previous_item_profile_name){
+            $profile_name = $item.profile_name
+            $profile_key = $item.profile_key
+            if ($profile_key.Trim() -ne $previous_item_profile_key.Trim() -or $profile_name.Trim() -ne $previous_item_profile_name.Trim()){
                 $sorted_unique += $item
                 $previous_item_profile_name = $item.profile_name
                 $previous_item_profile_key  = $item.profile_key
