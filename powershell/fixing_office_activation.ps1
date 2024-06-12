@@ -33,5 +33,5 @@ try {
 }
 finally {
     # Reset the execution policy back to the original policy
-    # Set-ExecutionPolicy -Scope Process -ExecutionPolicy Restricted
+    Set-ExecutionPolicy -Scope Process -ExecutionPolicy Restricted
 }
