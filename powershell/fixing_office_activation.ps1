@@ -10,6 +10,7 @@ try {
 
     # Search the specified directories for the file
     foreach ($dir in $directories) {
+        # $searchResults = Get-ChildItem -Path $dir -Recurse -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq $fileName }
         $searchResults = Get-ChildItem -Path $dir -Recurse -ErrorAction SilentlyContinue -Filter $fileName
         if ($searchResults) {
             $filePath = $searchResults.FullName
