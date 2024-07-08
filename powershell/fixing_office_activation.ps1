@@ -25,7 +25,7 @@ try {
         # Run the file 3 times as admin
         for ($i = 1; $i -le 3; $i++) {
             Write-Host "Running $fileName - Attempt $i"
-            Start-Process -FilePath $filePath -Verb RunAs
+            Start-Process -FilePath $filePath -Verb RunAs -Wait
         }
     } else {
         Write-Host "File not found in the specified directories"

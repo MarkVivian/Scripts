@@ -8,6 +8,7 @@ if ($office_deployment.Trim() -eq "") {
 # ask the user where the installation directory is to be stored.
 $directory = Read-Host "In which directory would you want the installer to be located: `n 1) Desktop `n 2) Downloads `n 3) Documents"
 
+# choose which directory the office installer is located.
 switch ($directory) {
     1 {
         $directory = "Desktop"
@@ -29,7 +30,8 @@ Write-Host "Storing the directory in $($directory)"
 # get the office deployment tools 
 $user=$env:USERPROFILE
 
-$directory_name="$($user)\$($directory)\office2021Installer"
+$directory_name= Join-Path -Path ( Join-Path -Path $user -ChildPath $directory) -ChildPath "office2021Installer"
+# "$($user)\$($directory)\office2021Installer"
 
 # create the office directory if it doesn't exist.
 if (-not (Test-Path $directory_name)) {
@@ -40,7 +42,8 @@ if (-not (Test-Path $directory_name)) {
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 # configuration file location.
-$office_customization="$($scriptDir)\Configuration.xml"
+# todo : make sure you are updating the file each time to ensure consistency in downloads.
+$office_customization=Join-Path -Path $ScriptDir -ChildPath "Configuration.xml" 
 
 # Check if Configuration.xml exists
 if (-not (Test-Path $office_customization)) {
@@ -67,4 +70,4 @@ start-process "$($directory_name)\officedeploymenttool_17531-20046.exe" -Wait
 # run the setup.
 set-location $directory_name
 .\setup.exe /configure .\Configuration.xml
-Write-Host "installation has begun succesfully"
+Write-Host "installation has begun succesfully `n once the office installer is done your office will be ready."
