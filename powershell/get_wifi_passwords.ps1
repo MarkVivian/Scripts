@@ -97,7 +97,7 @@ try {
 
     # Write only the new entries to the output file, appending to existing content
     if ($outputContent.Count -gt 0) {
-        $outputContent -join "`n" | Out-File -FilePath $outputFile -Append -Encoding utf8
+        $outputContent -join "`n" | Out-File -FilePath $outputFile -Append
     }
 
     if($number_of_new_additions -gt 0){
@@ -110,3 +110,4 @@ finally {
     # Reset the execution policy back to the original policy
     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Restricted
 }
+ 
