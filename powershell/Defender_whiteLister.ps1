@@ -13,5 +13,59 @@ if (-not (Test-Path $pathToScript)){
     exit -1
 }
 
+$choice=Read-Host "1) Bypass defender `n 2) add to start-up `n 3) both 1 and 2 `n "
 
-"the path to the script is $($pathToScript)" | Out-File -FilePath "file.txt"
+switch($choice){
+    "1" {
+        defernderLister $pathToScript
+    }
+    "2" {
+        start_up $pathToScript
+    }
+    "3" {
+        defernderLister $pathToScript
+        start_up $pathToScript
+    }
+    default {
+        "invalid input provided..."
+        exit 1
+    }
+}
+
+
+# This function will put your script past the defender/ 
+function defernderLister {
+    param (
+        [string] $Script
+    )
+    
+}
+
+# This function will put your Script to start up.
+function start_up   {
+    param (
+        $Script
+    )
+    # Prompt user for task name
+    $taskName = Read-Host "Provide a task name"
+
+    # Define the action
+    $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-File `"$Script`""
+    
+    # Define the trigger
+    $trigger = New-ScheduledTaskTrigger -AtStartup
+    
+    # Define the principal
+    $principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
+    
+    # Define the settings
+    $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
+
+    try {
+        # Register the scheduled task
+        Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Principal $principal -Settings $settings
+        Write-Host "Scheduled task '$taskName' has been created successfully." -ForegroundColor Green
+    } catch {
+        Write-Host "Failed to create scheduled task: $_" -ForegroundColor Red
+    }
+}
