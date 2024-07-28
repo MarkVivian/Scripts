@@ -28,7 +28,7 @@ try {
             Start-Process -FilePath $filePath -Verb RunAs -Wait
         }
     } else {
-        Write-Host "File not found in the specified directories"
+        Write-Host "File not found in the specified directories" -ForegroundColor Red
     }
 
 }

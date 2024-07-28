@@ -20,7 +20,7 @@ switch ($directory) {
         $directory = "Documents"
     }
     Default {
-        Write-Host "Invalid selection. Defaulting to Desktop."
+        Write-Host "Invalid selection. Defaulting to Desktop." -ForegroundColor Red
         $directory = "Desktop"
     }
 }
@@ -47,7 +47,7 @@ $office_customization=Join-Path -Path $ScriptDir -ChildPath "Configuration.xml"
 
 # Check if Configuration.xml exists
 if (-not (Test-Path $office_customization)) {
-    Write-Host "Configuration.xml file not found in script directory."
+    Write-Host "Configuration.xml file not found in script directory." -ForegroundColor Red
     exit
 }
  
