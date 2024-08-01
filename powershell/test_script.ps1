@@ -1,1 +1,1 @@
-Write-Output "Please stop ... come on " | Out-File ".\test.txt" 
+Write-Output "Please stop ... come on " | Out-File ".\test.txt" -Append
