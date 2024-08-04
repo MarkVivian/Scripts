@@ -26,6 +26,7 @@ function defernderLister {
         [string] $Script
     )
     Write-Host "called "
+    # todo : give this thing functionality somehow
 }
 
 # This function will put your Script to start up.
