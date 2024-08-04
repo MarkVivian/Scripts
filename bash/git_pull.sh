@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# todo : add functionality to check if there is internet connection.
+
 # it will sleep for 3 minutes.
 sleep 180 
 
