@@ -3,13 +3,17 @@ param(
     [string]$pathToScript
 )
 
+# checking if the path to the script is provided. if not, it will print an error
+if($pathToScript.Length -gt 0) {
+    # check if the script exists.
+    if (-not (Test-Path $pathToScript)){
+        Write-Host "The script does not exist `n $($pathToScript) `n Exiting"
 
-
-# check if the script exists.
-if (-not (Test-Path $pathToScript)){
-    Write-Host "The script does not exist `n $($pathToScript) `n Exiting"
-
-    # exits teh entire script.
+        # exits teh entire script.
+        exit -1
+    }
+}else{
+    Write-Host "please pass the path to the script to be executed `n e.g. `n defender_startup.ps1 /path/to/script " -ForegroundColor Red
     exit -1
 }
 
