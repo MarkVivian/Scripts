@@ -1,1 +1,0 @@
-Write-Output "the start up file is working " | Out-File "./startup_test.txt"
