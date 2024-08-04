@@ -40,7 +40,7 @@ if [[ -d $filepath ]] && [[ -n $extension_to_add ]]; then
         if [[ $choice1 -eq 1 ]]; then
             mv "$filepath/$file" "$filepath/$file.$extension_to_add" 
         elif [[ $choice1 -eq 2 ]]; then 
-            echo "I have no idea."
+									echo "do it yourself then ... come on man"
         fi
     done
 else
