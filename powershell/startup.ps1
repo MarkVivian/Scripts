@@ -20,24 +20,35 @@ if($pathToScript.Length -gt 0) {
     exit -1
 }
 
-# This function will put your script past the defender/ 
-function defernderLister {
-    param (
-        [string] $Script
-    )
-    Write-Host "called "
-    # todo : give this thing functionality somehow
-}
-
 # This function will put your Script to start up.
 function startUp {
     param (
         $Script
     )
-    Write-Host "using script in location $Script" -ForegroundColor Green
-    # Prompt user for task name
-    $taskName = Read-Host "Provide a task name: `n "
+    # test path is set to custom so that its easy to locate all the powershell scripts..
+    $taskPath = "\Custom_Scripts"
 
+    try{
+        # getting all the tasks that had been created previously by this script.
+        $current_task_names = Get-ScheduledTask -TaskPath "$taskPath\" -ErrorAction SilentlyContinue
+
+        # check if any script is found.
+        if ($current_task_names){
+            Write-Host "`n current tasks `n ----------------------- " -ForegroundColor Green 
+            
+            # print out every script found.
+            foreach ($task in $current_task_names) {
+                Write-Host $task.TaskName
+            }
+        }
+    }catch { 
+        Write-Host "Error getting scheduled tasks: $_" -ForegroundColor Red
+        exit 1
+    }
+
+    # Prompt user for task name
+    $taskName = Read-Host " `n Provide a task name not in the names above: `n "
+    
     # Trim any leading/trailing spaces from the task name
     $trimed_taskName = $taskName.Trim()
 
@@ -46,6 +57,14 @@ function startUp {
         Write-Host "please provide a usable taskName " -ForegroundColor Red
         exit -1
     }
+
+    # loop through the tasks in current_task_names and check if the taskName provided is present. check in lower case.
+    foreach ($task in $current_task_names){
+        if ($task.TaskName.ToString().ToLower() -eq $trimed_taskName.ToLower()){
+            Write-Host "Task name '$trimed_taskName' already exists. Please choose a different name." -ForegroundColor Red
+            exit -1
+        }
+    }     
 
     # Define the action
     $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-File `"$Script`""
@@ -58,9 +77,6 @@ function startUp {
     
     # Define the settings
     $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
-
-    # test path is set to custom so that its easy to locate all the powershell scripts..
-    $taskPath = "\Custom_Scripts"
     
     try {
         # Register the scheduled task
@@ -72,17 +88,10 @@ function startUp {
     }
 }
 
-$choice=Read-Host "1) Bypass defender `n 2) add to start-up `n 3) both 1 and 2 `n "
+$choice=Read-Host " `n 1) add to start-up `n "
 
 switch($choice){
     "1" {
-        defernderLister $pathToScript
-    }
-    "2" {
-        startUp $pathToScript
-    }
-    "3" {
-        defernderLister $pathToScript
         startUp $pathToScript
     }
     default {
