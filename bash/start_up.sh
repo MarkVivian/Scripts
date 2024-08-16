@@ -73,83 +73,20 @@ EOF
     sudo journalctl -u $service_name
 }
 
+# Function to add color to text
+color_text() {
+  local text="$1"
+  local color="$2"
+  tput setaf $color
+  echo "$text"
+  tput sgr0
+}
+
 # tell the user how to use cron jobs
 cron_jobs(){
-	echo -e "
-            CRONTAB SYNTAX
-        ========================
-- A crontab file contains a list of jobs and their schedules.
-- Each line in a crontab file represents a job and follows this syntax:
-    EG.
-        * * * * * command_to_run
-        - - - - -
-        | | | | |
-        | | | | +---- Day of the week (0 - 7) (Sunday is both 0 and 7)
-        | | | +------ Month (1 - 12)
-        | | +-------- Day of the month (1 - 31)
-        | +---------- Hour (0 - 23)
-        +------------ Minute (0 - 59)
-
-
-
-            CRONTAB EXAMPLES
-        =======================
-a) Run a command every minute.
-    EG.
-        * * * * * /path/to/command
-
-
-b) Run a  command at 3:30AM every day.
-    EG.
-        30 3 * * * /path/to/command
-
-
-c) Run a command at 5.00PM on the 1st and 15th of every month.
-    EG.
-        0 17 1,15 * * /path/to/command.
-
-
-d)run a command every 5 minutes.
-    EG.
-        */5 * * * * /path/to/command.
-
-
-e) run a command.
-    EG.
-        * * * * * echo "hello world!"
-
-
-f) run multiple commands.
-    EG.
-        * * * * * /path/to/your/command1 && /path/to/your/command2
-
-
-
-
-                    SPECIAL STRINGS.
-                =========================
-- Cron also supports special strings to represent common schedules:
-    > @reboot: Run once at startup.
-    > @yearly or @annually: Run once a year, equivalent to 0 0 1 1 *.
-    > @monthly: Run once a month, equivalent to 0 0 1 * *.
-    > @weekly: Run once a week, equivalent to 0 0 * * 0.
-    > @daily or @midnight: Run once a day, equivalent to 0 0 * * *.
-    > @hourly: Run once an hour, equivalent to 0 * * * *.
-    
-
-                    OUTPUT AND LOGGING.
-                ===========================
-- By default, cron sends output of the jobs to the user's email (if `MAILTO` is set).
-- To log output to a file, redirect the output within the cron command.
-    EG.
-        * * * * * /path/to/command > /path/to/output.log 2>&1
-
-
-- We can check the status of cron using:
-    EG.
-        systemctl status cron
-	"
-
+    # Replace 'your_command' with the actual command to run
+    crontab -l | { cat; echo "0 * * * * $1"; } | crontab -
+    color_text "Cron job added successfully" green
 }
 
 # Check if the user-provided script path exists
@@ -166,7 +103,7 @@ if [ -e $user_path ]; then
     if [[ $user_type -eq 1 ]]; then
         systemd_function $real_path
     else
-	cron_jobs
+	    cron_jobs $real_path
     fi
 else
     # If the path doesn't exist, exit with an error message in red
