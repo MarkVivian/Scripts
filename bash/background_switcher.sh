@@ -101,5 +101,5 @@ while true; do
     esac
 
     # Wait 10 minutes before changing the wallpaper again.
-    sleep 1
+    sleep 600
 done
