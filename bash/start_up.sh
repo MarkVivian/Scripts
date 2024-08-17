@@ -73,20 +73,23 @@ EOF
     sudo journalctl -u $service_name
 }
 
-# Function to add color to text
-color_text() {
-  local text="$1"
-  local color="$2"
-  tput setaf $color
-  echo "$text"
-  tput sgr0
-}
-
-# tell the user how to use cron jobs
+# add to crontab .
 cron_jobs(){
-    # Replace 'your_command' with the actual command to run
-    crontab -l | { cat; echo "0 * * * * $1"; } | crontab -
-    color_text "Cron job added successfully" green
+    local script_path="$1"
+
+    # Create the crontab entry
+    local crontab_entry="@reboot bash $script_path"
+
+    # Check if the crontab already has this entry
+    crontab -l 2>/dev/null | grep -qF "$crontab_entry"
+    
+    if [ $? -eq 0 ]; then
+        echo "The task is already in the crontab."
+    else
+        # Add the new task to the crontab
+        (crontab -l 2>/dev/null; echo "$crontab_entry") | crontab -
+        echo "The task has been added to the crontab."
+    fi
 }
 
 # Check if the user-provided script path exists
