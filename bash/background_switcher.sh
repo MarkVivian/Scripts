@@ -66,27 +66,23 @@ while true; do
     }
 
     # check which desktop environment your running.
-    desktop_env=$(echo $XDG_CURRENT_DESKTOP)
+    # todo : not working .. its not detecting desktop env
+    desktop_env="MATE" # $(echo $XDG_CURRENT_DESKTOP) doesn't work because cron cannot detect the environment.
     
-    # stop the program if the destop environment is empty.
-    if [ -z "$desktop_env" ]; then
-        echo "Could not detect desktop environment. Exiting."
-        exit 1
-    fi
     case "$desktop_env" in
-        GNOME)
+        "GNOME")
             echo "Detected GNOME, setting wallpaper..."
             set_gnome_wallpaper
             ;;
-        MATE)
-            echo "Detected MATE, setting wallpaper..."
+        "MATE")
+            echo "Detected MATE, setting wallp setting wallpapaper..."
             set_mate_wallpaper
             ;;
-        XFCE)
+        "XFCE")
             echo "Detected XFCE, setting wallpaper..."
             set_xfce_wallpaper
             ;;
-        KDE)
+        "KDE")
             echo "Detected KDE, setting wallpaper..."
             set_kde_wallpaper
             ;;
