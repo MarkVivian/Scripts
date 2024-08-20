@@ -1,14 +1,17 @@
 #!/bin/bash
 
-# Get all the images from directory ~/Pictures/cars
-# The external () stores the images in an array.
-pic_location="$HOME/Pictures/cars"
-walpapers=($(ls $pic_location))
+# if you use an echo above the log exec in line 17 it will apear in journalctl -u service_name
+
 
 # logging the script.
 logfile="/var/log/script_logs/background_switcher.log"
 touch $logfile
 chmod 755 $logfile
+
+# Get all the images from directory ~/Pictures/cars
+# The external () stores the images in an array.
+pic_location="$HOME/Pictures/cars"
+walpapers=($(ls $pic_location))
 
 # Redirect stdout and stderr.
 exec &> "$logfile"
@@ -19,6 +22,8 @@ previousNumber=-1
 
 
 while true; do
+    sleep 10
+
     # Get the number of images in the walpapers so that any update to the images folder is tracked.
     NumberOfWalpapers=${#walpapers[@]}
 
@@ -35,7 +40,7 @@ while true; do
 
     # Set the wallpaper.
     set_walpaper="$pic_location/${walpapers[$RandomNumber]}"
-    echo "Setting wallpaper to: $set_walpaper"
+    echo "Setting walpaper to: $set_walpaper"
 
     # Function to set wallpaper for GNOME
     set_gnome_wallpaper() {
@@ -71,19 +76,19 @@ while true; do
     
     case "$desktop_env" in
         "GNOME")
-            echo "Detected GNOME, setting wallpaper..."
+            echo "Detected GNOME, setting walpaper..."
             set_gnome_wallpaper
             ;;
         "MATE")
-            echo "Detected MATE, setting wallp setting wallpapaper..."
+            echo "Detected MATE, setting walpaper $set_walpaper..."
             set_mate_wallpaper
             ;;
         "XFCE")
-            echo "Detected XFCE, setting wallpaper..."
+            echo "Detected XFCE, setting walpaper..."
             set_xfce_wallpaper
             ;;
         "KDE")
-            echo "Detected KDE, setting wallpaper..."
+            echo "Detected KDE, setting walpaper..."
             set_kde_wallpaper
             ;;
         *)
@@ -97,5 +102,5 @@ while true; do
     esac
 
     # Wait 10 minutes before changing the wallpaper again.
-    sleep 600
+    sleep 1 # todo : switch to 600
 done

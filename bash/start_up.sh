@@ -37,6 +37,80 @@ systemd_function(){
         description="my script"
     fi
 
+    # provide the [Unit] after and [Install] WantedBy else we will use the default
+    # get the list of *.wants and remove the .wants from them and store in an array.
+    wants_list=($(ls /etc/systemd/system/ | grep wants | sed "s/.wants//g"))
+
+    echo "service modes in your pc:"
+    for (( i=0; i<${#wants_list[@]}; i++ )); do
+        echo "$i. ${wants_list[$i]}"
+    done
+    read -p "Provide the [Unit] after (default: multi-user.target): " after
+    read -p "Provide the [Install] WantedBy (default: multi-user.target) : " WantedBy
+
+    # make sure that variable $after and $WantedBy are intergers and between 0 and length of $wants_list array.
+    wants_list_length=${#wants_list[@]}
+    # check if after and wantedBy are empty
+    if [ -z "$after" ]; then
+        after_value=multi-user.target
+        echo "using : $after_value"
+    else 
+        if [[ "$after" =~ ^[0-9]+$ ]]; then  
+            if [[ "$after" -ge 0 && "$after" -lt $wants_list_length ]]; then
+                after_value=${wants_list[$after]}
+                echo "chose $after_value"
+            else   
+                echo "provide a value within the range 0 to $(($wants_list_length - 1))"
+                exit
+            fi 
+        else 
+            echo "please provide intergers"
+            exit 1
+        fi 
+    fi  
+
+    if [ -z "$WantedBy" ]; then 
+        wanted_value=multi-user.target
+        echo "using : $wanted_value"
+    else 
+        if [[ "$WantedBy" =~ ^[0-9]+$ ]]; then
+            if [[ "$WantedBy" -ge 0 && "$WantedBy" -lt $wants_list_length ]]; then
+                wanted_value=${wants_list[$WantedBy]}
+                echo "chose $wanted_value"
+            else   
+                echo "provide a value within the range 0 to $(($wants_list_length - 1))"
+                exit 1
+            fi
+        else 
+            echo "please provide an interger"
+            exit 1
+        fi  
+    fi 
+
+    # get the environment if needed..
+    read -p "do you wish to use environments (y/n : default:n): " answer
+
+    if ! [ -z "$answer" ]; then
+        if [[ "$answer" == "y" || "$answer" == "Y" ]]; then 
+            # environment handling.
+            echo "provide environments if any required (type done when finished): "
+            echo "format: HOME=/home/$USER"
+
+            while true; do  
+                read -p "Environment variable : " env_var
+
+                if [[ "$env_var" == "done" ]]; then
+                    echo "done with environment variables"
+                    break 
+                fi 
+                user_environment+="\nEnvironment=\"$env_var\"" 
+            done
+        fi
+    fi
+
+    echo -e "the chosen user environment is $user_environment"
+   
+    # form the service name.
     service_name="$(echo $script_name | cut -d . -f 1)_script.service"
     
     # Create the systemd service file
@@ -45,14 +119,17 @@ systemd_function(){
     file_creator=$(cat << EOF
 [Unit]
 Description= $description
-After=network.target \n
+After=$after_value \n
+
 [Service]
 Type=simple 
+Environment="HOME=$HOME" $user_environment
 ExecStart=$real_path 
 Restart=on-failure
 RestartSec=10 \n
+
 [Install] 
-WantedBy=multi-user.target  
+WantedBy=$wanted_value 
 EOF
 )
     echo -e "privileges escalation required to create file in \n /etc/systemd/system"
