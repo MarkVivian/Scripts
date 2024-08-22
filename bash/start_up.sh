@@ -46,7 +46,6 @@ systemd_function(){
         echo "$i. ${wants_list[$i]}"
     done
     read -p "Provide the [Unit] after (default: multi-user.target): " after
-    read -p "Provide the [Install] WantedBy (default: multi-user.target) : " WantedBy
 
     # make sure that variable $after and $WantedBy are intergers and between 0 and length of $wants_list array.
     wants_list_length=${#wants_list[@]}
@@ -68,6 +67,8 @@ systemd_function(){
             exit 1
         fi 
     fi  
+
+    read -p "Provide the [Install] WantedBy (default: multi-user.target) : " WantedBy
 
     if [ -z "$WantedBy" ]; then 
         wanted_value=multi-user.target
@@ -123,6 +124,7 @@ After=$after_value \n
 
 [Service]
 Type=simple 
+Environment="USER=$USER"
 Environment="HOME=$HOME" $user_environment
 ExecStart=$real_path 
 Restart=on-failure
@@ -135,7 +137,7 @@ EOF
     echo -e "privileges escalation required to create file in \n /etc/systemd/system"
     sudo bash -c "echo -e '$file_creator' > $path"
 
-    echo -e "making the scripts executable \n\n"
+    echo -e "making the scripts executable \n"
     sudo chmod +x $user_path
     sudo chmod +x $path
     
@@ -154,8 +156,69 @@ EOF
 cron_jobs(){
     local script_path="$1"
 
+    # provide choices for crontab.
+    read -p "do you wish to use: \n 1. custom schedules \n 2.pre-made schedules : \n " choice
+    case "$choice" in
+        "1")
+            echo "Please use Intergers: "
+            read -p "Day of the week (0 - 7) (Sunday is both 0 and 7) (* to ignore): " day
+            read -p "month (1 - 12) (* to ignore) " month
+            read -p "Day of the month (* to ignore)" dayMonth
+            read -p "Hour (0 - 23) (* to ignore)" hour
+            read -p "Minute (0 - 59) (* to ignore)" minute
+
+            # Validate custom schedule inputs
+            if [[ ! "$day" =~ ^[0-7*]$ ]] || [[ ! "$month" =~ ^[1-12*]$ ]] ||
+            [[ ! "$dayMonth" =~ ^[1-31*]$ ]] || [[ ! "$hour" =~ ^[0-23*]$ ]] ||
+            [[ ! "$minute" =~ ^[0-59*]$ ]]; then
+                echo "Invalid input for custom schedule. Please use integers within the specified ranges."
+                return 1
+            fi
+
+
+            monkey="$minute $hour $dayMonth $month $day"
+            ;;
+        "2")
+            read -p "What do you choose: \n 
+                    1. @reboot: Run once at startup. \n
+                    2. @yearly: Run once a year. \n
+                    3. @monthly: Run once a month. \n 
+                    4. @weekly: Run once a week. \n 
+                    5. @daily: Run once a day. \n 
+                    6. @hourly: Run once an hour.  \n " pre_made
+            
+            case "$pre_made" in 
+                "1") 
+                    monkey="@reboot"
+                    ;;
+                "2") 
+                    monkey="@yearly"
+                    ;;
+                "3") 
+                    monkey="@monthly"
+                    ;;
+                "4") 
+                    monkey="@weekly"
+                    ;;
+                "5") 
+                    monkey="@daily"
+                    ;;
+                "6") 
+                    monkey="@hourly"
+                    ;;
+                *)
+                    echo "please provide the appropriate input."
+                    exit 1
+                    ;;
+            esac
+        *)
+            echo "please provide a number between 1 and 2"
+            exit 1
+            ;;
+    esac
+
     # Create the crontab entry
-    local crontab_entry="@reboot bash $script_path"
+    local crontab_entry="$monkey bash $script_path"
 
     # Check if the crontab already has this entry
     crontab -l 2>/dev/null | grep -qF "$crontab_entry"

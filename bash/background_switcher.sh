@@ -102,5 +102,5 @@ while true; do
     esac
 
     # Wait 10 minutes before changing the wallpaper again.
-    sleep 1 # todo : switch to 600
+    sleep 10 # todo : switch to 600
 done
