@@ -72,11 +72,11 @@ while true; do
 
     # check which desktop environment your running.
     # todo : not working .. its not detecting desktop env
-    desktop_env="MATE" # $(echo $XDG_CURRENT_DESKTOP) doesn't work because cron cannot detect the environment.
+    desktop_env=$(echo $XDG_CURRENT_DESKTOP) # doesn't work because cron cannot detect the environment.
     
     case "$desktop_env" in
         "GNOME")
-            echo "Detected GNOME, setting walpaper..."
+            echo "Detected GNOME, setting walpaper $set_walpaper..."
             set_gnome_wallpaper
             ;;
         "MATE")
@@ -84,11 +84,11 @@ while true; do
             set_mate_wallpaper
             ;;
         "XFCE")
-            echo "Detected XFCE, setting walpaper..."
+            echo "Detected XFCE, setting walpaper $set_walpaper..."
             set_xfce_wallpaper
             ;;
         "KDE")
-            echo "Detected KDE, setting walpaper..."
+            echo "Detected KDE, setting walpaper $set_walpaper..."
             set_kde_wallpaper
             ;;
         *)

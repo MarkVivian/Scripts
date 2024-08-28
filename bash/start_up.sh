@@ -27,7 +27,7 @@ modify_path_function(){
 
 # Define a function to create a systemd service file
 systemd_function(){
-    real_path=$1
+    real_path=$1        
     # Get the script name from the path
     script_name=$(modify_path_function)
     
@@ -163,10 +163,7 @@ cron_jobs(){
         "1")
             echo "Please use Intergers: "
             read -p "Day of the week (0 - 7) (Sunday is both 0 and 7) (* to ignore): " day
-            read -p "month (1 - 12) (* to ignore): " month
-            read -p "Day of the month (* to ignore): " dayMonth
-            read -p "Hour (0 - 23) (* to ignore): " hour
-            read -p "Minute (0 - 59) (* to ignore): " minute
+
 
             # Check and validate each input variable
             if [[ "$day" =~ ^[0-7]$ || "$day" == "*" ]]; then
@@ -176,6 +173,8 @@ cron_jobs(){
                 exit 1
             fi
 
+            read -p "month (1 - 12) (* to ignore): " month
+            
             if [[ "$month" =~ ^[1-9]$|^[1][0-2]$ || "$month" == "*" ]]; then
                 echo "month is $month"
             else
@@ -183,6 +182,8 @@ cron_jobs(){
                 exit 1
             fi
 
+            read -p "Day of the month (* to ignore): " dayMonth
+            
             if [[ "$dayMonth" =~ ^[1-9]$|^[12][0-9]$|^3[01]$ || "$dayMonth" == "*" ]]; then
                 echo "dayMonth is $dayMonth"
             else
@@ -190,12 +191,16 @@ cron_jobs(){
                 exit 1
             fi
 
+            read -p "Hour (0 - 23) (* to ignore): " hour
+
             if [[ "$hour" =~ ^[0-9]$|^1[0-9]$|^2[0-3]$ || "$hour" == "*" ]]; then
                 echo "hour is $hour"
             else
                 echo -e "\e[31mInvalid hour value provided. It must be a number between 0-23 or *.\e[0m"
                 exit 1
             fi
+
+            read -p "Minute (0 - 59) (* to ignore): " minute
 
             if [[ "$minute" =~ ^[0-9]$|^[1-5][0-9]$ || "$minute" == "*" ]]; then
                 echo "minute is $minute"
@@ -248,8 +253,37 @@ cron_jobs(){
             ;;
     esac
 
-    # Create the crontab entry
-    local crontab_entry="$monkey bash $script_path"
+    
+    # additional scripts to be added to the crontab.
+    read -p "Do you wish to add commands (y or n) default:n :  " additional
+
+    if [[ "$additional" == "y" ||  "$additional" == "Y" ]]; then 
+        additional=""
+        # allow the user to add as many commands as expected
+        while true; do 
+            read -p "Provide command (use done when finished) : " userCommand
+
+            if [[ "$userCommand" == "done" ]]; then 
+                break 
+            fi
+
+            additional+="$userCommand "
+        done 
+
+        # Create the crontab entry
+        crontab_entry="$monkey $additionalbash $script_path"
+
+    elif [[ "$additional" == "n" ||  "$additional" == "N" || "$additional" == "" || "$additional" == " " ]]; then 
+        echo "Proceeding without additional commands"
+        
+        # Create the crontab entry
+        crontab_entry="$monkey bash $script_path"
+    else 
+        echo -e "\e[31m please provide valid input \e[0m"
+        exit 1
+    fi
+
+
 
     # Check if the crontab already has this entry
     crontab -l 2>/dev/null | grep -qF "$crontab_entry"
