@@ -6,7 +6,7 @@ echo -e "what type of start up do you prefer: \n 1. using systemd \n 2. using cr
 read -p "Choose:  " user_type
 
 # Validate the user's input
-if [[ $user_type -ne 1 ]] && [[ user_type -ne 2 ]]; then 
+if [[ $user_type -ne 1 ]] && [[ $user_type -ne 2 ]] && ! [[ $user_type =~ ^[0-9]+$ ]]; then 
     # If the input is invalid, exit with an error message in red
     echo -e "\033[91mInvalid value typed\033[0m"
     exit
@@ -59,7 +59,7 @@ systemd_function(){
                 after_value=${wants_list[$after]}
                 echo "chose $after_value"
             else   
-                echo "provide a value within the range 0 to $(($wants_list_length - 1))"
+                echo -e "\e[31mprovide a value within the range 0 to $(($wants_list_length - 1)) \e[0m"
                 exit
             fi 
         else 
@@ -157,35 +157,65 @@ cron_jobs(){
     local script_path="$1"
 
     # provide choices for crontab.
-    read -p "do you wish to use: \n 1. custom schedules \n 2.pre-made schedules : \n " choice
+    echo -e "\e[33mOptions : \n 1. custom schedules \n 2. pre-made schedules \n \e[0m"
+    read -p "Choice : " choice
     case "$choice" in
         "1")
             echo "Please use Intergers: "
             read -p "Day of the week (0 - 7) (Sunday is both 0 and 7) (* to ignore): " day
-            read -p "month (1 - 12) (* to ignore) " month
-            read -p "Day of the month (* to ignore)" dayMonth
-            read -p "Hour (0 - 23) (* to ignore)" hour
-            read -p "Minute (0 - 59) (* to ignore)" minute
+            read -p "month (1 - 12) (* to ignore): " month
+            read -p "Day of the month (* to ignore): " dayMonth
+            read -p "Hour (0 - 23) (* to ignore): " hour
+            read -p "Minute (0 - 59) (* to ignore): " minute
 
-            # Validate custom schedule inputs
-            if [[ ! "$day" =~ ^[0-7*]$ ]] || [[ ! "$month" =~ ^[1-12*]$ ]] ||
-            [[ ! "$dayMonth" =~ ^[1-31*]$ ]] || [[ ! "$hour" =~ ^[0-23*]$ ]] ||
-            [[ ! "$minute" =~ ^[0-59*]$ ]]; then
-                echo "Invalid input for custom schedule. Please use integers within the specified ranges."
-                return 1
+            # Check and validate each input variable
+            if [[ "$day" =~ ^[0-7]$ || "$day" == "*" ]]; then
+                echo "day is $day"
+            else
+                echo -e "\e[31mInvalid day value provided. It must be a number between 0-7 or *.\e[0m"
+                exit 1
+            fi
+
+            if [[ "$month" =~ ^[1-9]$|^[1][0-2]$ || "$month" == "*" ]]; then
+                echo "month is $month"
+            else
+                echo -e "\e[31mInvalid month value provided. It must be a number between 1-12 or *.\e[0m"
+                exit 1
+            fi
+
+            if [[ "$dayMonth" =~ ^[1-9]$|^[12][0-9]$|^3[01]$ || "$dayMonth" == "*" ]]; then
+                echo "dayMonth is $dayMonth"
+            else
+                echo -e "\e[31mInvalid day of month value provided. It must be a number between 1-31 or *.\e[0m"
+                exit 1
+            fi
+
+            if [[ "$hour" =~ ^[0-9]$|^1[0-9]$|^2[0-3]$ || "$hour" == "*" ]]; then
+                echo "hour is $hour"
+            else
+                echo -e "\e[31mInvalid hour value provided. It must be a number between 0-23 or *.\e[0m"
+                exit 1
+            fi
+
+            if [[ "$minute" =~ ^[0-9]$|^[1-5][0-9]$ || "$minute" == "*" ]]; then
+                echo "minute is $minute"
+            else
+                echo -e "\e[31mInvalid minute value provided. It must be a number between 0-59 or *.\e[0m"
+                exit 1
             fi
 
 
             monkey="$minute $hour $dayMonth $month $day"
             ;;
         "2")
-            read -p "What do you choose: \n 
-                    1. @reboot: Run once at startup. \n
-                    2. @yearly: Run once a year. \n
-                    3. @monthly: Run once a month. \n 
-                    4. @weekly: Run once a week. \n 
-                    5. @daily: Run once a day. \n 
-                    6. @hourly: Run once an hour.  \n " pre_made
+            read -p "What do you choose: 
+                    1. @reboot: Run once at startup.
+                    2. @yearly: Run once a year. 
+                    3. @monthly: Run once a month. 
+                    4. @weekly: Run once a week. 
+                    5. @daily: Run once a day.  
+                    6. @hourly: Run once an hour. 
+                    :   " pre_made
             
             case "$pre_made" in 
                 "1") 
@@ -207,12 +237,13 @@ cron_jobs(){
                     monkey="@hourly"
                     ;;
                 *)
-                    echo "please provide the appropriate input."
+                    echo -e "\e[31m please provide the appropriate input. \e[0m"
                     exit 1
                     ;;
             esac
+            ;;
         *)
-            echo "please provide a number between 1 and 2"
+            echo -e "\e[31m please provide a number between 1 and 2 \e[0m"
             exit 1
             ;;
     esac
@@ -223,8 +254,8 @@ cron_jobs(){
     # Check if the crontab already has this entry
     crontab -l 2>/dev/null | grep -qF "$crontab_entry"
     
-    if [ $? -eq 0 ]; then
-        echo "The task is already in the crontab."
+    if [[ $? -eq 0 ]]; then
+        echo -e "\e[31m The task is already in the crontab. \e[0m"
     else
         # Add the new task to the crontab
         (crontab -l 2>/dev/null; echo "$crontab_entry") | crontab -
