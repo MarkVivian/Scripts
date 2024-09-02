@@ -21,7 +21,7 @@ try {
 
     # Method 1 .
     # Check if the file was found
-    if ($filePath) {
+    if ($filePathWithName) {
        Write-Host "File found at: $filePathWithName"
 
         # Run the file 3 times as admin
@@ -31,6 +31,7 @@ try {
        }
     } else {
        Write-Host "File not found in the specified directories" -ForegroundColor Red
+       exit 1
     }
 
 
@@ -54,7 +55,7 @@ try {
             Invoke-Expression -Command "$cscript_command; $cscript_activation"
 
         }else{  
-            Write-Host "Invalid file location."
+            Write-Host "Invalid file location." -ForegroundColor Red
             exit 1
         }
 
