@@ -1,8 +1,7 @@
-<Configuration ID="e9c635b8-314c-4400-82d1-32be080232bf">
+<Configuration ID="fc0f0998-9d56-4a5a-a8c5-6ba89c83b108">
   <Add OfficeClientEdition="64" Channel="PerpetualVL2021">
-    <Product ID="ProPlus2021Volume" PIDKEY="FXYTK-NJJ8C-GB6DW-3DYQT-6F7TH">
+    <Product ID="Standard2021Volume" PIDKEY="KDX7X-BNVR8-TXXGX-4Q7Y8-78VT3">
       <Language ID="en-gb" />
-      <ExcludeApp ID="Lync" />
     </Product>
   </Add>
   <Property Name="SharedComputerLicensing" Value="0" />
