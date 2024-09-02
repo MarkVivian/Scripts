@@ -6,7 +6,7 @@ try {
     $directories = @("C:\Program Files", "C:\Program Files (x86)")
 
     # Initialize a variable to store the file path if found
-    $filePath = $null
+    $filePathWithName = $null
 
     # Search the specified directories for the file
     foreach ($dir in $directories) {
