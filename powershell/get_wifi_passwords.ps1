@@ -1,39 +1,60 @@
+# Define a class to hold server information
 class ServerInfo {
     [String] $profile_name
     [String] $profile_key
 }
 
 try {
+    # Initialize a variable to count the number of new additions
     [int] $number_of_new_additions = 0
+
+    # Define a function to format raw data into a list of ServerInfo objects
     function Get-FormattedProfiles {
+        # Define a parameter for the raw data
         param($rawData)
+
+        # Initialize an empty list to store the formatted data
         $content_list = @()
+
+        # Initialize variables to hold the current profile name and key
         $profile_name = ""
         $key_name = ""
+
+        # Loop through each line in the raw data
         foreach ($line in $($rawData -Split "`n")) {
+            # Check if the line is not empty
             if($line){
+                # Check if the line contains the word "Profile"
                 if ($line -match "Profile"){
+                    # Set the profile name to the current line
                     $profile_name=$line
                 }
     
+                # Check if the line contains the word "key"
                 if ($line -match "key"){
+                    # Set the key name to the current line
                     $key_name=$line
                 }
-
     
+                # Check if both profile name and key name are set
                 if ($profile_name -and $key_name){
+                    # Create a new ServerInfo object
                     $ServerInfo = New-Object ServerInfo
+                    # Set the profile name and key of the ServerInfo object
                     $ServerInfo.profile_name = $profile_name
                     $ServerInfo.profile_key = $key_name
+                    # Reset the profile name and key variables
                     $profile_name = $null
                     $key_name= $null
+                    # Add the ServerInfo object to the content list
                     $content_list += $ServerInfo
                 }
             }
         }  
+        # Return the list of formatted ServerInfo objects
         return $content_list
     }
-
+    
     # Get the directory where the script is located
     $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
