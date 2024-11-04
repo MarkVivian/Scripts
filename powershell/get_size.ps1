@@ -14,8 +14,6 @@ function Get-FileOrFolder{
             # if the script exists, i want to extrapolate the path so as to ensure both ~ and ./ are understood.
             $path = Resolve-Path $path
 
-            Write-Host $path
-
             # check if the file is a folder or a file.
             if ((Get-Item -Path $path).PSIsContainer) {
                 Write-Host "$path is a folder." -ForegroundColor Green
