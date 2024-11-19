@@ -38,8 +38,55 @@ if (-not (Test-Path $directory_name)) {
     new-item -type directory -path $directory_name   
 }
 
-# get the current location where the script is running.
-$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+# for the exe files.
+function Get-FolderFromDialog {
+    # Add .NET Windows Forms assembly to use graphical components
+    Add-Type -AssemblyName System.Windows.Forms
+
+    # Create a new FolderBrowserDialog instance
+    $folderBrowser = New-Object System.Windows.Forms.FolderBrowserDialog
+
+    # Set the dialog's description, shown at the top of the window
+    $folderBrowser.Description = "Select the folder where the script is located"
+
+    # Set the root folder from where the browsing starts (e.g., My Computer)
+    $folderBrowser.RootFolder = [System.Environment+SpecialFolder]::MyComputer
+
+    # Show the dialog and check if the user clicked "OK"
+    if ($folderBrowser.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
+        # Return the selected folder path
+        return $folderBrowser.SelectedPath
+    } else {
+        # Write an error and exit if no folder was selected
+        Write-Error "No folder selected. Exiting script."
+        exit 1
+    }
+}
+
+# Get the directory where the script is located 
+# UPDATED FOR EXE FILES.
+try{
+    $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+}catch{
+    # i tried if statements but nothing was working.
+    # if it can't get the directory the script is located ask the user.
+    $home_directory = Get-FolderFromDialog
+
+    # Check if the provided home directory exists and check if the script is located in that directory
+    $script_location = Join-Path $home_directory "installing_office.exe"
+
+    if (Test-Path $home_directory){
+        if(Test-Path -Path $script_location) {
+            $scriptDir = $home_directory
+        } else {
+            Write-Error "The script could not be located in the provided home directory. $home_directory"
+            exit 1
+        }
+    } else {
+        Write-Error "The provided home directory does not exist. $home_directory"
+        exit 1
+    }
+}
 
 # configuration file location.
 # todo : make sure you are updating the file each time to ensure consistency in downloads.
