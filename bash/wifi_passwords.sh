@@ -19,19 +19,19 @@ check_file(){
 
     # Read each set of 3 lines from the existing file
     while IFS= read -r profile_line && IFS= read -r key_line && IFS= read -r empty_line; do
-    # Extract existing WiFi profile and password
-    wifi_name=$(echo "$profile_line" | grep "Profile" | cut -d ':' -f 2 | awk '{$1=$1;print}')
-    wifi_password=$(echo "$key_line" | grep "Key" | cut -d ':' -f 2 | awk '{$1=$1;print}')
+        # Extract existing WiFi profile and password
+        wifi_name=$(echo "$profile_line" | grep "Profile" | cut -d ':' -f 2 | awk '{$1=$1;print}')
+        wifi_password=$(echo "$key_line" | grep "Key" | cut -d ':' -f 2 | awk '{$1=$1;print}')
 
-        if ! [[ -z $wifi_name ]]; then  
-            # Check if the WiFi profile and password match
-            if [[ "$store_wifi" == "$wifi_name" ]]; then 
-                if [[ "$store_password" == "$wifi_password" ]]; then 
-                    value_found=true
-                    break
-                fi
-            fi 
-        fi
+            if ! [[ -z $wifi_name ]]; then  
+                # Check if the WiFi profile and password match
+                if [[ "$store_wifi" == "$wifi_name" ]]; then 
+                    if [[ "$store_password" == "$wifi_password" ]]; then 
+                        value_found=true
+                        break
+                    fi
+                fi 
+            fi
     done < $script_name
 
     # If not found, append to the file
