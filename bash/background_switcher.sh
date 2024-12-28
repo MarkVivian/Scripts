@@ -1,12 +1,6 @@
 #!/bin/bash
 
 # if you use an echo above the log exec in line 17 it will apear in journalctl -u service_name
-
-export DISPLAY=:0
-export XAUTHORITY=/home/mark/.Xauthority
-export XDG_CURRENT_DESKTOP=MATE
-# TODO : FIX STILL ONGOING.
-
 # logging the script.
 logfile="/var/log/script_logs/background_switcher.log"
 touch $logfile
@@ -26,7 +20,6 @@ previousNumber=-1
 
 
 while true; do
-    sleep 1
 
     # Get the number of images in the walpapers so that any update to the images folder is tracked.
     NumberOfWalpapers=${#walpapers[@]}
@@ -54,8 +47,8 @@ while true; do
 
     # Function to set wallpaper for MATE
     set_mate_wallpaper() {
-        dbus-launch --exit-with-session gsettings set org.mate.background picture-filename "$set_walpaper"
-        dbus-launch --exit-with-session gsettings set org.mate.background picture-options 'zoom'
+        gsettings set org.mate.background picture-filename "$set_walpaper"
+        gsettings set org.mate.background picture-options 'zoom'
     }
 
     # Function to set wallpaper for XFCE
@@ -75,9 +68,7 @@ while true; do
     }
 
     # check which desktop environment your running.
-    # todo : not working .. its not detecting desktop env
     desktop_env=$(echo $XDG_CURRENT_DESKTOP) # doesn't work because cron cannot detect the environment.
-
     case "$desktop_env" in
         "GNOME")
             echo "Detected GNOME, setting walpaper $set_walpaper..."
@@ -109,5 +100,5 @@ while true; do
     notify-send "background change" "the background has been changed successfully"
 
     # Wait 1 minutes before changing the wallpaper again.
-    sleep 60
+    sleep 1
 done
