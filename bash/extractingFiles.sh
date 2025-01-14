@@ -1,11 +1,32 @@
 #!/bin/bash
 
-echo "what kind of file are you extracting: "
-echo "1) tar.xz"
-echo "2) tar.gz"
-echo "3) .zip"
-echo "4) install .deb file"
-read -p "choose one of the following: " type_name
+deb_function(){
+    local content="$1"
+    echo "dpkg -i $content"
+    dpkg -i "$content"
+    return 1
+}
+
+zip_function(){
+    local content="$1"
+    local locations="$2"
+    echo "unzip $content -d $locations"
+    unzip "$content" -d "$locations"
+}
+
+xz_function(){
+    local content="$1"
+    local locations="$2"
+    echo "tar -xf $content -C $locations"
+    tar -xf "$content" -C "$locations"
+}
+
+gz_function(){
+    local content="$1"
+    local locations="$2"
+    echo "tar -xzf $content -C $locations"
+    tar -xzf "$content" -C "$locations"
+}
 
 type_name(){
     case "$type_name" in
@@ -27,10 +48,10 @@ type_name(){
     esac
 }
 
-name_type=$(type_name)
-
 # this will list all the files according to the type chossen
 file_choose_helper(){
+    name_type=$1
+    
     local files=() # array in bash
 
     # this will loop over all the files in the current directory.
@@ -63,9 +84,7 @@ file_choose_helper(){
     echo "$filename"
 
     if [[ $type_name -eq 4 ]]; then
-	    echo "dpkg -i $filename"
-	    dpkg -i "$filename"
-	    return 1
+	    deb_function $filename
     else
 	    read -p "do you wish to change the directory where the file will be stored: (y or n)" choice
     fi
@@ -77,17 +96,72 @@ file_choose_helper(){
     fi
 
     if [[ $type_name -eq 1 ]]; then
-		    echo "tar -xf $filename -C $location"
-		    tar -xf "$filename" -C "$location"
-	    elif [[ $type_name -eq 2 ]]; then
-		    echo "tar -xzf $filename -C $location"
-		    tar -xzf "$filename" -C "$location"
-	    else
-		    echo "unzip $filename -d $location"
-		    unzip "$filename" -d "$location"
+        xz_function $filename $location
+    elif [[ $type_name -eq 2 ]]; then
+        gz_function $filename $location
+    else
+        zip_function $filename $location
     fi
 }
 
-file_choose_helper
+# get all the files passed to this bash file.
+passed_files=$#
+
+# check if variable is empty 
+if [[ $passed_files -gt 0 ]]; then
+    echo "you have provided some files."
+
+    passed_files=$@
+    for file in $passed_files; do
+        echo $file
+        # check if the variable has any actual files.
+        if [ -e "$file" ]; then
+            echo "this type of $(file $file)"
+            # check what type of file it is.
+            file_type=$(file $file)
+            case "$file_type" in
+                *"gzip"*)
+                    echo "the file is of type gzip"
+                    gz_function $file "."
+                    ;;
+                *"XZ"*)
+                    echo "this file is of type XZ"
+                    xz_function $file "."
+                    ;;
+                *"Zip"*)
+                    echo "this file is of type Zip"
+                    zip_function $file "."
+                    ;;
+                *"Debian"*)
+                    echo "this file is of type debian"
+                    deb_function $file
+                    ;;
+                *)
+                    echo "not known"
+                    ;;
+            esac
+
+        else 
+            echo "this is not a file $file"
+        fi
+    done
+else
+    echo "no files have been provided."
+
+    echo "what kind of file are you extracting: "
+    echo "1) tar.xz"
+    echo "2) tar.gz"
+    echo "3) .zip"
+    echo "4) install .deb file"
+    read -p "choose one of the following: " type_name
+
+    name_type=$(type_name)
+
+    file_choose_helper $name_type
+fi
+
+
+
+
 
 

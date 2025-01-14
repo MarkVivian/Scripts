@@ -100,5 +100,5 @@ while true; do
     notify-send "background change" "the background has been changed successfully"
 
     # Wait 1 minutes before changing the wallpaper again.
-    sleep 1
+    sleep 600
 done
