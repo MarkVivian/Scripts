@@ -1,4 +1,3 @@
-
 #!/bin/bash
 
 export DISPLAY=:0.0
@@ -30,8 +29,15 @@ fi
 
 # alert if battery is full while charging.
 if [ "$battery_status" == "Full" ]; then 
-	
 	echo "battery fully charged at $(date)"
 	notify-send -u critical "Battery full" "battery fully charged. Please remove charger."
 	paplay /usr/share/sounds/freedesktop/stereo/complete.oga
+
+	# alert if the user has placed the battery cap at 78,
+elif [ "$battery_status" == "Charging" ]; then 
+	if [ "$battery_percentage" -ge 77 ]; then 
+		echo "battery charged to 77. at $(date)"
+		notify-send -u critical "Battery status" "battery at 77. please act accordingly."
+		paplay /usr/share/sounds/freedesktop/stereo/complete.oga
+	fi
 fi

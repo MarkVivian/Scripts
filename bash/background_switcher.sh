@@ -1,5 +1,10 @@
 #!/bin/bash
 
+export DISPLAY=:0.0
+export XAUTHORITY=/home/mark/.Xauthority
+export PULSE_SERVER=unix:/run/user/$(id -u)/pulse/native    
+export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus"
+
 # if you use an echo above the log exec in line 17 it will apear in journalctl -u service_name
 # logging the script.
 logfile="/var/log/script_logs/background_switcher.log"
@@ -68,7 +73,7 @@ while true; do
     }
 
     # check which desktop environment your running.
-    desktop_env=$(echo $XDG_CURRENT_DESKTOP) # doesn't work because cron cannot detect the environment.
+    desktop_env="MATE" # $(echo $XDG_CURRENT_DESKTOP) # doesn't work because cron cannot detect the environment.
     case "$desktop_env" in
         "GNOME")
             echo "Detected GNOME, setting walpaper $set_walpaper..."
@@ -99,6 +104,6 @@ while true; do
     # todo : to be removed.
     notify-send "background change" "the background has been changed successfully"
 
-    # Wait 1 minutes before changing the wallpaper again.
+    # Wait 5 minutes before changing the wallpaper again.
     sleep 600
 done
