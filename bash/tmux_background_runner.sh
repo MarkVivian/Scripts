@@ -12,6 +12,8 @@ chmod 755 $logfile
 
 # Redirect stdout and stderr.
 exec &> "$logfile"
+
+sleep 60
 echo "Script started at $(date)"
 
 # this are for scripts with issues with the cron tab assignment.
