@@ -1,0 +1,1 @@
+# todo : create a script that will automitacally create a executable from the powershell scripts by checking for any changes ensuring updated executables.

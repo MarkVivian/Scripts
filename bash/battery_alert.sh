@@ -22,7 +22,7 @@ if [ "$battery_status" != "Charging" ]; then
 	if [ "$battery_percentage" -le 30 ]; then
 		echo "battery run low at $(date)"
 		notify-send -u critical "Battery Low" "battery percentage below 30 percent. Please Recharge";
-		paplay /usr/share/sounds/freedesktop/stereo/message.oga
+		paplay /usr/share/sounds/freedesktop/stereo/suspend-error.oga
 	fi
 
 fi
