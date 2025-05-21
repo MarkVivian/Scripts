@@ -50,7 +50,7 @@ type_name(){
 
 # this will list all the files according to the type chossen
 file_choose_helper(){
-    name_type=$1
+    name_type="$1"
     
     local files=() # array in bash
 
@@ -105,36 +105,39 @@ file_choose_helper(){
 }
 
 # get all the files passed to this bash file.
-passed_files=$#
+passed_files="$#"
 
 # check if variable is empty 
 if [[ $passed_files -gt 0 ]]; then
     echo "you have provided some files."
-
-    passed_files=$@
-    for file in $passed_files; do
+    
+    passed_files=("$@")
+    echo $passed_files
+    for file in "$passed_files"; do
         echo $file
+        
+
         # check if the variable has any actual files.
         if [ -e "$file" ]; then
-            echo "this type of $(file $file)"
+            echo "this type of $(file "$file")"
             # check what type of file it is.
-            file_type=$(file $file)
+            file_type=$(file "$file")
             case "$file_type" in
                 *"gzip"*)
                     echo "the file is of type gzip"
-                    gz_function $file "."
+                    gz_function "$file" "."
                     ;;
                 *"XZ"*)
                     echo "this file is of type XZ"
-                    xz_function $file "."
+                    xz_function "$file" "."
                     ;;
                 *"Zip"*)
                     echo "this file is of type Zip"
-                    zip_function $file "."
+                    zip_function "$file" "."
                     ;;
                 *"Debian"*)
                     echo "this file is of type debian"
-                    deb_function $file
+                    deb_function "$file"
                     ;;
                 *)
                     echo "not known"
