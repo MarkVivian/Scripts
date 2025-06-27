@@ -1,7 +1,7 @@
 #!/bin/bash
 
 help_details() {
-    echo "This is a program to rename multiple files."
+    echo "This is a program to rename multiple file's extentions."
     echo "***********FUNCTIONALITY***********"
     echo "provide the path first in the form"
     echo "  EG"
@@ -40,7 +40,7 @@ if [[ -d $filepath ]] && [[ -n $extension_to_add ]]; then
         if [[ $choice1 -eq 1 ]]; then
             mv "$filepath/$file" "$filepath/$file.$extension_to_add" 
         elif [[ $choice1 -eq 2 ]]; then 
-									echo "do it yourself then ... come on man"
+			echo "do it yourself then ... come on man"
         fi
     done
 else

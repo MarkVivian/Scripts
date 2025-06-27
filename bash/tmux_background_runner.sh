@@ -17,7 +17,7 @@ sleep 60
 echo "Script started at $(date)"
 
 # this are for scripts with issues with the cron tab assignment.
-scripts=("~/Documents/Scripts/bash/background_switcher.sh")
+scripts=("~/Documents/Scripts/bash/background_switcher.sh" "~/Documents/Scripts/bash/vga_parrot_resolution.sh")
 
 # Open a tmux server and pass the scripts provided.
 # Create a tmux session named after the current user.
@@ -26,7 +26,7 @@ tmux new-session -d -s $session_name
 echo "session name is $session_name"
 
 # Loop through each script in the scripts array.
-for item in $scripts; do
+for item in "${scripts[@]}"; do
     script_path=$item
     
     # Open a new tmux window (tab) for each script inside the existing tmux session.
