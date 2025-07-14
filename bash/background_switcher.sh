@@ -61,7 +61,6 @@ check_wallpaper_tools() {
 check_wallpaper_tools
 
 IncaseVerticalMonitor() {
-
     local tmp_wallpaper="/tmp/vertical_wallpaper.jpg"
     local set_walpaper=$1
 
@@ -73,6 +72,7 @@ IncaseVerticalMonitor() {
 
     # Function to set wallpaper for MATE
     set_mate_wallpaper() {
+   		gsettings set org.mate.background show-desktop-icons true
         gsettings set org.mate.background picture-filename "$set_walpaper"
         gsettings set org.mate.background picture-options 'zoom'
     }
@@ -94,9 +94,9 @@ IncaseVerticalMonitor() {
     }
     
     # check if there is an external monitor connected and if it is vertical.
-    if xrandr | grep -q " connected"; then
+    if (xrandr | grep -q " connected"); then
         # check if there is a rotated monitor in parrot os...
-        connected_monitors=$(xrandr | grep "connected" | grep -v "HDMI" | grep "left (" || grep "right (")
+        connected_monitors=$(xrandr | grep "connected" | grep -v "HDMI" | grep "left (")
 
         # get the monitor name from xrandr.
         if [[ ! -z "$connected_monitors" ]]; then
@@ -181,5 +181,5 @@ while true; do
     IncaseVerticalMonitor $set_walpaper
 
     # Wait 5 minutes before changing the wallpaper again.
-    sleep 300
+    sleep 30
 done
