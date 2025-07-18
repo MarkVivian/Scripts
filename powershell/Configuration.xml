@@ -1,6 +1,6 @@
-<Configuration ID="2087946e-7993-41b9-9414-3a80211871cf">
-  <Add OfficeClientEdition="64" Channel="PerpetualVL2021">
-    <Product ID="Standard2021Volume" PIDKEY="KDX7X-BNVR8-TXXGX-4Q7Y8-78VT3">
+<Configuration ID="3e8cd4bf-e3cd-40a1-a75d-4643cb551cd1">
+  <Add OfficeClientEdition="64" Channel="PerpetualVL2024">
+    <Product ID="Standard2024Volume" PIDKEY="V28N4-JG22K-W66P8-VTMGK-H6HGR">
       <Language ID="en-gb" />
     </Product>
   </Add>

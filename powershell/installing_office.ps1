@@ -2,7 +2,7 @@ $office_deployment = Read-Host "enter the download link from  `n https://www.mic
 
 if ($office_deployment.Trim() -eq "") {
     Write-Host "no url provided .... using default url"
-    $office_deployment = "https://download.microsoft.com/download/2/7/A/27AF1BE6-DD20-4CB4-B154-EBAB8A7D4A7E/officedeploymenttool_17830-20162.exe"
+    $office_deployment = "https://download.microsoft.com/download/6c1eeb25-cf8b-41d9-8d0d-cc1dbc032140/officedeploymenttool_18827-20140.exe"
 }
 
 # ask the user where the installation directory is to be stored.
