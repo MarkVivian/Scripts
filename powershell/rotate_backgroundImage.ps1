@@ -3,14 +3,26 @@
 # ensure the MutlMonitorTool package is installed.
 function Install-MultMonitorTool {
     $packageName = "MutlMonitorTool"
-    $packagePath = "$env:ProgramFiles\$packageName"
+    $packagePath = "$env:ProgramFiles\"
 
-    if (-not (Test-Path $packagePath)) {
-        Write-Host "Installing MutlMonitorTool package..." -ForegroundColor Green
-        # Assuming the package is available in a specific location, adjust the path as necessary.
-        $sourcePath = "C:\path\to\MutlMonitorTool.zip"
-        Expand-Archive -Path $sourcePath -DestinationPath $env:ProgramFiles -Force
+    # ensure that the search doesn't require case sensitivity.
+    $searchResults = Get-ChildItem -Path $packagePath -ErrorAction SilentlyContinue -Filter "$packageName"
+
+    if ($searchResults.Name) {
+        Write-Host "$packageName is already installed."
     } else {
-        Write-Host "MutlMonitorTool is already installed." -ForegroundColor Yellow
+        Write-Host "Installing $packageName..." -ForegroundColor Yellow
+        Invoke-WebRequest -Uri "https://www.nirsoft.net/utils/multimonitortool-x64.zip" -OutFile "$packagePath\$packageName.zip"
+        Write-Host "Extracting $packageName..." -ForegroundColor Yellow
+        Expand-Archive -Path "$packagePath\$packageName.zip" -DestinationPath $packagePath
+        Remove-Item -Path "$packagePath\$packageName.zip" -Recurse 
+        Write-Host "$packageName installed successfully." -ForegroundColor Green
     }
+}
+
+
+function Walpaper_Machine {
+    $wallpaperPath = "C:\Users\Mark\Pictures\cars\" 
+
+    
 }
