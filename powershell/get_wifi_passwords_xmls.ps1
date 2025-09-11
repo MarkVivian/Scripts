@@ -1,3 +1,4 @@
+# depreciated : why would you ever need xml files... 
 # Define a class to hold server information
 class ServerInfo {
     [String] $profile_name
