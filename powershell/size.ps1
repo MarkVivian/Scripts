@@ -2,7 +2,8 @@
 param(
     [Parameter(Mandatory = $true)]
     [string[]] $path,
-    [string[]] $exclude
+    [string[]] $exclude,
+    [switch] $rawData
 )
 
 # $DebugPreference = "Continue"
@@ -22,19 +23,28 @@ function ExcludeLogic{
             info = $path_content
         }
     }
-    $incase_folder = Get-ChildItem $path_content -Recurse -ErrorAction SilentlyContinue -Force
     $finale_items = @()
-    foreach($included in $incase_folder){
+    foreach($included in $path_content){
         $checker = $null
-        foreach($item in $exclude_pattern){
+        foreach($item in $exclude_pattern.Split(" ")){
             Write-Debug "Comparing $($included.Name) with $item"
             # Normalize both values to compare only the name
             $includedName = $included.Name
             $excludePattern = $item.TrimStart('.', '\')
-            if ($includedName -like $excludePattern -or $included.FullName -like "*$excludePattern") {
-                Write-Debug "----------------- Found match: $($included.FullName) matches exclude pattern $excludePattern -----------------"
-                $checker = $true
-                break
+            # If pattern contains wildcard characters '*' or '?', use wildcard matching.
+            if ($excludePattern -match '[\*\?]') {
+                if ($includedName -like $excludePattern -or $included.FullName -like "*$excludePattern") {
+                    Write-Debug "----------------- Found wildcard match: $($included.FullName) matches exclude pattern $excludePattern -----------------"
+                    $checker = $true
+                    break
+                }
+            } else {
+                # No wildcard: perform exact match on the leaf name to avoid accidental partial matches.
+                if ($includedName -ieq $excludePattern) {
+                    Write-Debug "----------------- Found exact match: $($included.FullName) matches exclude pattern $excludePattern -----------------"
+                    $checker = $true
+                    break
+                }
             }
         }
         if (-not $checker) {
@@ -54,21 +64,22 @@ function DiffFolderFile{
     )
     
     $containment = @()
-    if ($path_value.Trim() -eq ""){
-        Write-Host "No path value provided.." -ForegroundColor Red
-        exit 1
+    if ([String]::IsNullOrWhiteSpace($path_value)) {
+        Write-Warning "No path value provided.." 
+        continue 
     }else{
         foreach($prop in $path_value){
             # check if there is a * wildcard.
             if (Test-Path $prop){
                 $item = Resolve-Path $prop
+                $item_enumerated = Get-ChildItem $item -Recurse -ErrorAction SilentlyContinue -Force
                 Write-Debug "Resolved path: $item"
-                $exclude_result = ExcludeLogic -path_content $item -exclude_pattern $exclude
+                $exclude_result = ExcludeLogic -path_content $item_enumerated -exclude_pattern $exclude
                 $containment += [PSCustomObject]@{
                     Name = $item
                     Size = $(if ($exclude_result.state) { 
                         Write-Debug "Including all items. $exclude_result"
-                        (Get-ChildItem $exclude_result.info -Recurse -ErrorAction SilentlyContinue -Force | Measure-Object -Property Length -Sum).Sum
+                        ($item_enumerated | Measure-Object -Property Length -Sum).Sum
                     } else { 
                         Write-Debug "no item excluded. Included items: $($exclude_result.info)"
                         ($exclude_result.info | Measure-Object -Property Length -Sum).Sum
@@ -90,12 +101,16 @@ function GetSize{
         Write-Host $object_in_bytes.Name -ForegroundColor Yellow  
         # check if the size in bytes is NaN or empty and write 0 bytes .
         if ([System.Double]::IsNaN($size_in_bytes)) {
-            Write-Host "File size could not be determined." -ForegroundColor Red
-            exit 1
+            Write-Warning "File size could not be determined." 
+            continue 
         }
         if ($size_in_bytes -eq 0) {
-            Write-Host "0 Bytes" -ForegroundColor Green
-            exit 1
+            Write-Warning "0 Bytes"
+            continue
+        }
+
+        if ($rawData) {
+            Write-Host "Raw Data: $($size_array.Size) Bytes" -ForegroundColor Green
         }
 
         # Define an array to hold the units of measurement
@@ -113,6 +128,9 @@ function GetSize{
     }
 
     $total_size = ($size_array | Measure-Object -Property Size -Sum).Sum
+    if ($rawData){
+        Write-Host "`nTotal Size (Raw Data): $total_size Bytes" -ForegroundColor Green
+    }
     # Convert total size to human-readable format
     $sizes =@("Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
     $factor = [math]::Floor([math]::Log($total_size, 1024))

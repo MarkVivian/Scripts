@@ -28,7 +28,7 @@ A collection of useful scripts in both Bash and PowerShell for system administra
 └── powershell/
     ├── auto_executable.ps1
     ├── connect_wifi_automatically.ps1
-    ├── get_size.ps1
+    ├── size.ps1
     ├── get_wifi_passwords_xmls.ps1
     ├── installing_office.ps1
     ├── sort_and_remove_redundancy_password_file.ps1
@@ -70,6 +70,9 @@ LOG_FILE="/var/log/background_switcher.log"
 <!-- Continue with other bash scripts -->
 
 ## PowerShell Scripts
+
+### size.ps1 
+- [size.ps1 - directory/file size enumerator](./powershell/size.md)
 
 ### auto_executable.ps1
 <!-- Add description here -->
