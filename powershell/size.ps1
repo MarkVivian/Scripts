@@ -3,10 +3,13 @@ param(
     [Parameter(Mandatory = $true)]
     [string[]] $path,
     [string[]] $exclude,
-    [switch] $rawData
+    [switch] $rawData,
+    [switch] $DebugMode = $false
 )
 
-# $DebugPreference = "Continue"
+if($DebugMode){
+    $DebugPreference = "Continue"
+}
 
 function ExcludeLogic{
     param(
