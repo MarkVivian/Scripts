@@ -15,7 +15,12 @@ function MonitorAllocation{
             details = @([System.Windows.Forms.Screen]::AllScreens | ForEach-Object {
                [PSCustomObject]@{
                     device_name = $_.DeviceName
-                    bounds = $_.Bounds
+                    bounds = [PSCustomObject]@{
+                        X_axis = $_.Bounds.X
+                        Y_axis = $_.Bounds.Y
+                        Width = $_.Bounds.Width
+                        Height = $_.Bounds.Height
+                    }
                     primary = $_.Primary
                 }
             })
@@ -27,7 +32,7 @@ function MonitorAllocation{
         $screen = $Monitor_data.monitor_actual.details[$i]
         Write-Host "Monitor $($i + 1):" -ForegroundColor Green
         Write-Host "  Device Name: $($screen.device_name)" -ForegroundColor Yellow
-        Write-Host "  Bounds: $($screen.bounds.Width)" -ForegroundColor Yellow
+        Write-Host "  Bounds: $($screen.bounds)" -ForegroundColor Yellow
         Write-Host "  Primary: $($screen.primary)" -ForegroundColor Yellow
     }
 
