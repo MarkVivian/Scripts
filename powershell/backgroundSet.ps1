@@ -6,7 +6,10 @@ param(
     [Parameter(Mandatory = $true)]
     [string] $OutputImagePath,
         
-    [switch] $DebugMode
+    [switch] $DebugMode,
+
+    [Parameter(Mandatory = $true)]
+    [int] $sleepDuration = 10
 )
 
 # Load required assemblies for image manipulation
@@ -517,7 +520,7 @@ try {
         Set-WindowsWallpaper -ImagePath $OutputImagePath
 
         Remove-Item -Path "$($env:TEMP)\*.png" -ErrorAction SilentlyContinue -Force 
-        Start-Sleep 10
+        Start-Sleep $sleepDuration
     }    
     Write-Host "`n=== Process Complete ===" -ForegroundColor Magenta
     Write-Host "Your composite wallpaper has been saved to: $OutputImagePath" -ForegroundColor Green
