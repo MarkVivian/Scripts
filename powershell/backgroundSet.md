@@ -180,12 +180,17 @@ The script automatically detects and analyzes your monitor configuration:
 ### Position Handling
 ```
 Example Layout:
-┌─────────────┐┌─────────────┐
-│   Monitor 1 ││   Monitor 2 │
-│ (-1080, 0)  ││  (0, 0)     │
-│ 1080x1920   ││  1920x1080  │
-│ Vertical    ││  Horizontal │
-└─────────────┘└─────────────┘
+┌─────────────┐
+│             │
+│             │┌──────────────────────┐
+│   Monitor 1 ││   Monitor 2          │
+│ (-1080, 0)  ││  (0, 0)              │
+│ 1080x1920   ││  1920x1080           │
+│ Vertical    ││  Horizontal          │
+│             │└──────────────────────┘
+│             │
+│             │
+└─────────────┘
 ```
 
 ## Image Classification
