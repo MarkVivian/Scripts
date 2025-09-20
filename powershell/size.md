@@ -54,10 +54,6 @@ A PowerShell script that calculates and displays the total size of directories a
    Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
    ```
 
-3. **Make it globally available (optional):**
-   ```powershell
-   # Add to PowerShell profile or move to a directory in $env:PATH
-   ```
 
 ## Usage
 
@@ -78,7 +74,7 @@ A PowerShell script that calculates and displays the total size of directories a
 .\size.ps1 -path "C:\Projects", "D:\Backup" -exclude "*.log", "temp*"
 ```
 
-## Parameters
+## Parameters0
 
 ### `-path` (Mandatory)
 - **Type:** `string[]` (Array of strings)
@@ -230,8 +226,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ### Debug Mode
 Enable detailed logging for troubleshooting:
 ```powershell
-# Edit the script and uncomment:
-$DebugPreference = "Continue"
+size.ps1 -path "." -DebugMode 
 ```
 
 ### Permissions Issues

@@ -76,6 +76,7 @@ function DiffFolderFile{
             if (Test-Path $prop){
                 $item = Resolve-Path $prop
                 $item_enumerated = Get-ChildItem $item -Recurse -ErrorAction SilentlyContinue -Force
+                Write-Debug "Items found: $($item_enumerated)"
                 Write-Debug "Resolved path: $item"
                 $exclude_result = ExcludeLogic -path_content $item_enumerated -exclude_pattern $exclude
                 $containment += [PSCustomObject]@{
@@ -97,6 +98,7 @@ function DiffFolderFile{
 }
 
 function GetSize{
+    Write-Debug "Getting size for path: $path"
     $size_array = DiffFolderFile -path_value $path
     Write-Debug "Size array: $size_array"
     foreach($object_in_bytes in $size_array){

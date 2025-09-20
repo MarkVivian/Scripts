@@ -8,7 +8,7 @@ param(
         
     [switch] $DebugMode,
 
-    [Parameter(Mandatory = $true)]
+    [Parameter()]
     [int] $sleepDuration = 10
 )
 
@@ -262,10 +262,14 @@ function CreateCompositeWallpaper {
     Write-Host "Original Vertical position: ($vertX, $vertY) - Size: ${VertWidth}x${VertHeight}" -ForegroundColor Gray
 
     # Normalize coordinates - make them all positive relative to the virtual screen origin
-    $normalizedHorzX = $horzX - $virtual_data.x_axis
-    $normalizedHorzY = $horzY - $virtual_data.y_axis
-    $normalizedVertX = $vertX - $virtual_data.x_axis
-    $normalizedVertY = $vertY - $virtual_data.y_axis
+    $normalizedHorzX = [Math]::Abs($horzX - $virtual_data.x_axis)
+    $normalizedHorzY = [Math]::Abs($horzY - $virtual_data.y_axis)  
+    $normalizedVertX = [Math]::Abs($vertX - $virtual_data.x_axis)
+    $normalizedVertY = [Math]::Abs($vertY - $virtual_data.y_axis)
+
+    # Additional debug info
+    Write-Host "Virtual screen origin: ($($virtual_data.x_axis), $($virtual_data.y_axis))" -ForegroundColor DarkGray
+    Write-Host "Monitor offsets - Horz: ($($horzX - $virtual_data.x_axis), $($horzY - $virtual_data.y_axis)) Vert: ($($vertX - $virtual_data.x_axis), $($vertY - $virtual_data.y_axis))" -ForegroundColor DarkGray
 
     Write-Host "Normalized Horizontal position: ($normalizedHorzX, $normalizedHorzY)" -ForegroundColor Cyan
     Write-Host "Normalized Vertical position: ($normalizedVertX, $normalizedVertY)" -ForegroundColor Cyan
@@ -355,9 +359,14 @@ function CreateCompositeWallpaper {
             $needsRotation = ($Images.Vertical.Count -lt $count_math) # Rotate if we're using a horizontal image
             $vertProcessedImage = Resize-ImageToFit -SourceImage $vertSourceImage -TargetWidth $VertWidth -TargetHeight $VertHeight -RotateIfNeeded $needsRotation
             
-            # Center the image within the vertical monitor area
+            # Center the image within the vertical monitor area - fix the positioning
             $vertCenterX = $normalizedVertX + [int](($VertWidth - $vertProcessedImage.Width) / 2)
             $vertCenterY = $normalizedVertY + [int](($VertHeight - $vertProcessedImage.Height) / 2)
+
+            # Debug positioning
+            Write-Host "Vertical monitor area: ($normalizedVertX, $normalizedVertY) ${VertWidth}x${VertHeight}" -ForegroundColor DarkYellow
+            Write-Host "Vertical image size: $($vertProcessedImage.Width)x$($vertProcessedImage.Height)" -ForegroundColor DarkYellow
+            Write-Host "Calculated center position: ($vertCenterX, $vertCenterY)" -ForegroundColor DarkYellow
             
             Write-Host "Placing vertical image at: ($vertCenterX, $vertCenterY) (resized $($vertProcessedImage.Width)x$($vertProcessedImage.Height))" -ForegroundColor Green
             $canvasGraphics.DrawImage($vertProcessedImage, $vertCenterX, $vertCenterY)
@@ -463,22 +472,19 @@ function Set-WindowsWallpaper {
 
 # Main execution
 try {
-    $monitorInfo = MonitorAllocation    
+    $monitorInfo = MonitorAllocation
+    Write-Host "=== Dual Monitor Composite Wallpaper Generator ===" -ForegroundColor Magenta
     foreach ($screen in $monitorInfo.monitor_actual.details) {
         if ($screen.type -eq "Horizontal") {
             $HorizontalWidth = $screen.bounds.Width
             $HorizontalHeight = $screen.bounds.Height
             $horzX = $screen.bounds.X_axis
             $horzY = $screen.bounds.Y_axis
-
-            Write-Debug "Horizontal Monitor Found: ${HorizontalWidth}x${HorizontalHeight}"
         } else {
             $VerticalWidth = $screen.bounds.Width
             $VerticalHeight = $screen.bounds.Height
             $vertX = $screen.bounds.X_axis
             $vertY = $screen.bounds.Y_axis
-            Write-Debug "Vertical Monitor Found: ${VerticalWidth}x${VerticalHeight}"
-            
             if ($screen.bounds.X -lt 0) {
                 $VerticalPosition = "Left"
             } elseif ($screen.bounds.X -gt 0) {
@@ -486,14 +492,13 @@ try {
             }
         }
     }
-    Write-Host "=== Dual Monitor Composite Wallpaper Generator ===" -ForegroundColor Magenta
+    Write-Host "Horizontal dimensions: $HorizontalHeight x $HorizontalWidth" -ForegroundColor Blue
+    Write-Host "Vertical dimensions: $verticalHeight x $VerticalWidth" -ForegroundColor Blue
+    Write-Host "Horizontal axis: $horzX x $horzY" -ForegroundColor Blue
+    Write-Host "Vertical axis: $vertX x $vertY" -ForegroundColor Blue
+    Write-Host "Vertical Position: $($VerticalPosition -join ', ')" -ForegroundColor Blue
     Write-Host "Pictures Directory: $PicturesPath" -ForegroundColor White
     Write-Host "Output Location: $OutputImagePath" -ForegroundColor White
-    Write-Host "Horizontal Monitor: ${HorizontalWidth}x${HorizontalHeight}" -ForegroundColor White
-    Write-Host "Vertical Monitor: ${VerticalWidth}x${VerticalHeight}" -ForegroundColor White
-    Write-Host "Vertical Position: $VerticalPosition" -ForegroundColor White
-    Write-Host "horizontal axis X : $horzX Y : $horzY " -ForegroundColor White
-    Write-Host "vertical axis X : $vertX Y : $vertY " -ForegroundColor White
     
     # Validate inputs
     if (-not (Test-Path $PicturesPath)) {
@@ -516,7 +521,7 @@ try {
     while($true){    
         # Create composite wallpaper
         CreateCompositeWallpaper -Images $images -HorzWidth $HorizontalWidth -HorzHeight $HorizontalHeight -VertWidth $VerticalWidth -VertHeight $VerticalHeight -Output $OutputImagePath -virtual_data $monitorInfo.monitor_virtual -vertX $vertX -vertY $vertY -horzX $horzX -horzY $horzY -totalImgCount $images.count
-        
+            
         Set-WindowsWallpaper -ImagePath $OutputImagePath
 
         Remove-Item -Path "$($env:TEMP)\*.png" -ErrorAction SilentlyContinue -Force 
