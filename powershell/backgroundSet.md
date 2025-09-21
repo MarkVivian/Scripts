@@ -1,6 +1,6 @@
 # backgroundSet.ps1 - Dual Monitor Composite Wallpaper Generator
 
-A PowerShell script that automatically creates and sets composite wallpapers for dual monitor setups with different orientations. Designed specifically for mixed horizontal/vertical monitor configurations with automatic image rotation and continuous wallpaper cycling.
+A PowerShell script that automatically creates and sets composite wallpapers for dual monitor setups with orientations. Designed specifically for mixed horizontal/vertical monitor configurations with automatic image rotation and continuous wallpaper cycling.
 
 ## Table of Contents
 
@@ -61,7 +61,7 @@ A PowerShell script that automatically creates and sets composite wallpapers for
    Invoke-WebRequest -Uri "https://your-repo/backgroundSet.ps1" -OutFile "backgroundSet.ps1"
    
    # Option 2: Clone repository
-   git clone https://github.com/yourusername/dual-monitor-wallpaper.git
+   git clone https://github.com/MarkVivian/Scripts/blob/main/powershell/backgroundSet.ps1
    ```
 
 2. **Set execution policy:**
@@ -172,9 +172,8 @@ The script automatically detects and analyzes your monitor configuration:
 5. **Calculates aspect ratios** for each display
 
 ### Supported Configurations
-- **Horizontal + Vertical:** Most common (e.g., 1920x1080 + 1080x1920)
+- **Horizontal + Vertical:** Most common 
 - **Multiple Horizontal:** Uses first two detected
-- **Multiple Vertical:** Uses first two detected
 - **Mixed Resolutions:** Handles different DPI and scaling
 
 ### Position Handling
