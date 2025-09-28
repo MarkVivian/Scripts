@@ -1,5 +1,16 @@
 # Function to check if the script is run with administrative privileges
 # run the file in remotesigned execution policy.
+[CmdletBinding()]
+param(
+    [parameter(Mandatory=$false)]
+    [string]$custom_path = "$env:USERPROFILE\Desktop",
+    [switch]$DebugMode = $false
+)
+
+if ($DebugMode) {
+    $DebugPreference = "Continue"
+} 
+
 
 class ServerInfo {
     [String] $profile_name
@@ -10,7 +21,6 @@ try {
     
     [int] $threshold=50
     [int] $number_of_jobs=1
-    [int] $number_of_new_additions = 0
 
     # Initialize an array to store the content that will be written to the file
     $outputContent = @()
@@ -67,63 +77,17 @@ try {
         }  
         return $content_list
     }
-
-    # for the exe files.
-    function Get-FolderFromDialog {
-        # Add .NET Windows Forms assembly to use graphical components
-        Add-Type -AssemblyName System.Windows.Forms
-    
-        # Create a new FolderBrowserDialog instance
-        $folderBrowser = New-Object System.Windows.Forms.FolderBrowserDialog
-    
-        # Set the dialog's description, shown at the top of the window
-        $folderBrowser.Description = "Select the folder where the script is located"
-    
-        # Set the root folder from where the browsing starts (e.g., My Computer)
-        $folderBrowser.RootFolder = [System.Environment+SpecialFolder]::MyComputer
-    
-        # Set the initially selected folder to the user's home directory
-        $folderBrowser.SelectedPath = $HOME
-    
-        # Show the dialog and check if the user clicked "OK"
-        if ($folderBrowser.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
-            # Return the selected folder path
-            return $folderBrowser.SelectedPath
-        } else {
-            # Write an error and exit if no folder was selected
-            Write-Error "No folder selected. Exiting script."
-            exit 1
-        }
-    }
-    
-    
+      
     # Get the directory where the script is located 
     # UPDATED FOR EXE FILES.
-    try{
-        $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-    }catch{
-        # i tried if statements but nothing was working.
-        # if it can't get the directory the script is located ask the user.
-        $home_directory = Get-FolderFromDialog
-
-        # Check if the provided home directory exists and check if the script is located in that directory
-        $script_location = Join-Path $home_directory "get_wifi_passwords.exe"
-
-        if (Test-Path $home_directory){
-            if(Test-Path -Path $script_location) {
-                $scriptDir = $home_directory
-            } else {
-                Write-Error "The script could not be located in the provided home directory. $home_directory"
-                exit 1
-            }
-        } else {
-            Write-Error "The provided home directory does not exist. $home_directory"
-            exit 1
-        }
+    if(-not (Test-Path($custom_path))){
+        Write-Host "the path $custom_path does not exist"
+        Read-Host "Press Enter to exit"
+        exit 1
     }
 
     # Define the path for the output file
-    $outputFile = Join-Path $scriptDir "WifiProfilesAndKeys.txt"
+    $outputFile = Join-Path $(Resolve-Path $custom_path) "WifiProfilesAndKeys.txt"
 
     # Read existing content from the output file if it exists using the test-path command.
     if (Test-Path $outputFile) {
@@ -134,7 +98,7 @@ try {
 
         # get the number of profiles in the existing content.
         [int] $existing_content_count=($existingContent -Split("Profile")).Count - 1
-
+        Write-Debug "the existing content count is $existing_content_count"
         calculator -existing_content_count_value $existing_content_count
 
     } else {
@@ -152,9 +116,9 @@ try {
     }
 
     # Iterate through each profile and show the key
-    foreach ($profile in $profiles) {
+    foreach ($profile_value in $profiles) {
         # Get the profile information including the key
-        $profileInfo = netsh wlan show profile name="$profile" key=clear | Select-String "Key Content"
+        $profileInfo = netsh wlan show profile name="$profile_value" key=clear | Select-String "Key Content"
 
         # If the profile info contains the key, extract it
         if ($profileInfo) {
@@ -164,15 +128,10 @@ try {
         }
         
         # Create a formatted entry for the new profile
-        $entry = "Profile: $profile `n Key: $profileKey `n"
+        $entry = "Profile: $profile_value `n Key: $profileKey `n"
 
         $entry_list+=$entry
     }
-
-    # get the number of profiles gotten from the host machine
-    [int] $entry_list_count = ($entry_list).Count
-
-
 
     # this function should perform pararrel processing when checking if it exists.
     # this is the heavy weight of the entire script.
@@ -180,8 +139,10 @@ try {
         param(
             $entry_data
         )
-        $profile_per_job=[math]::Ceiling($entry_list_count / $number_of_jobs)
+        $profile_per_job=[math]::Ceiling($entry_data.Count / $number_of_jobs)
 
+        Write-Debug "the number of jobs is $number_of_jobs"
+        Write-Debug "the number of profiles per job is $profile_per_job"
         $jobs=@()
         $current_match_state=$false
         for ($i = 0; $i -lt $number_of_jobs; $i++) {
@@ -218,26 +179,35 @@ try {
                    }  
                    if (-not $current_match_state){
                            $outputContentValue += "Profile: $profile_name_1 `n Key: $profile_key_1 `n"
-                           Write-Host "new addition $profile_name_1"
-                           $number_of_new_additions = $number_of_new_additions + 1
+                           $number_of_new_additions = $number_of_new_additions + 1 
+                           Write-Host "new addition $profile_name_1" -ForegroundColor Green
                    }
                    $current_match_state = $false
                 }
+
+                if($number_of_new_additions -gt 0){
+                    Write-Host "WLAN profile information has been updated $number_of_new_additions added" -ForegroundColor Gray
+                } else{
+                    Write-Host "no update required" -ForegroundColor Gray
+                }
+
                 return $outputContentValue
             } -ArgumentList $sub_entries, $existing_content_list
         }
-        
+                
         foreach ($job in $jobs){
             $jobs_results = Receive-Job -Job $job -Wait
             # Write-Host $jobs_results
             $outputContent += $jobs_results
             Remove-Job -Job $job
         }
+
         return $outputContent
     }
 
+
     if ($existence){
-        $outputContent = check_if_exists -entry_data $entry_list
+        $outputContent = check_if_exists -entry_data $entry_list 
     }else{
         $outputContent = $entry_list
     }
@@ -246,13 +216,8 @@ try {
         $outputContent -join "`n" | Out-File -FilePath $outputFile -Append -Encoding utf8
     }
 
-    if($number_of_new_additions -gt 0){
-        Write-Host "WLAN profile information has been updated in $outputFile `n $number_of_new_additions added"
-    } else{
-        Write-Host "no update required"
-    }
-}
-finally {
-    # Reset the execution policy back to the original policy
-    Set-ExecutionPolicy -Scope Process -ExecutionPolicy Restricted
+}catch{
+    Write-Host "An error occurred: $_"
+    Read-Host "Press Enter to exit"
+    exit 1
 }

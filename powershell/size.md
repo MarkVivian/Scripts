@@ -45,8 +45,8 @@ A PowerShell script that calculates and displays the total size of directories a
    Invoke-WebRequest -Uri "https://github.com/MarkVivian/Scripts/blob/main/powershell/size.ps1" -OutFile "size.ps1"
    
    # Option 2: Clone repository
-   git clone https://github.com/MarkVivian/Scripts/blob/main/powershell/size.ps1
-   
+   git clone https://github.com/MarkVivian/Scripts.git
+   cd powershell
    ```
 
 2. **Set execution policy (if needed):**

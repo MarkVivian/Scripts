@@ -58,10 +58,10 @@ A PowerShell script that automatically creates and sets composite wallpapers for
 1. **Download the script:**
    ```powershell
    # Option 1: Direct download
-   Invoke-WebRequest -Uri "https://your-repo/backgroundSet.ps1" -OutFile "backgroundSet.ps1"
+   Invoke-WebRequest -Uri "https://github.com/MarkVivian/Scripts/blob/main/powershell/backgroundSet.ps1" -OutFile "backgroundSet.ps1"
    
    # Option 2: Clone repository
-   git clone https://github.com/MarkVivian/Scripts/blob/main/powershell/backgroundSet.ps1
+   git clone https://github.com/MarkVivian/Scripts.git 
    ```
 
 2. **Set execution policy:**

@@ -58,7 +58,8 @@ Invoke-WebRequest -Uri "https://github.com/MarkVivian/Scripts/blob/main/powershe
 ```powershell
 # Clone repository with sample configuration files
 # clone the powershell script
-git clone https://github.com/MarkVivian/Scripts/blob/main/powershell/backgroundSet.ps1
+git clone https://github.com/MarkVivian/Scripts.git
+cd powershell
 ```
 
 ### Option 3: Download Executable Version

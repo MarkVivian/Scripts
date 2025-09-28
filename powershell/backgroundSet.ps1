@@ -9,8 +9,10 @@ param(
     [switch] $DebugMode,
 
     [Parameter()]
-    [int] $sleepDuration = 10
+    [int] $sleepDuration = 300
 )
+
+# Start-Transcript -Path "$($env:TEMP)\backgroundSet_log_$(Get-Date -Format 'yyyy-MM-dd_HH-mm-ss').txt" -Append -Force
 
 # Load required assemblies for image manipulation
 Add-Type -AssemblyName System.Drawing
@@ -112,7 +114,8 @@ function Find-SuitableImages {
     
     foreach ($imageFile in $allImages) {
         $processedCount++
-        Write-Progress -Activity "Analyzing Images" -Status "Processing $($imageFile.Name)" -PercentComplete (($processedCount / $allImages.Count) * 100)
+        $process_calc = (($processedCount / $allImages.Count) * 100)
+        Write-Progress -Activity "Analyzing Images" -Status "Processing $($imageFile.Name) `n Percentage : $([math]::Floor($process_calc))%" -PercentComplete $process_calc
         
         $dimensions = Get-ImageDimensions -ImagePath $imageFile.FullName
         if ($dimensions) {
@@ -289,25 +292,25 @@ function CreateCompositeWallpaper {
     $canvasGraphics.Clear([System.Drawing.Color]::DarkGray)
 
     try {
-        # Draw outline rectangles first to show placement
-        $outlinePen = New-Object System.Drawing.Pen([System.Drawing.Color]::Red, 5)
+        # # Draw outline rectangles first to show placement
+        # $outlinePen = New-Object System.Drawing.Pen([System.Drawing.Color]::Red, 5)
         
-        # Draw horizontal monitor outline
-        $canvasGraphics.DrawRectangle($outlinePen, $normalizedHorzX, $normalizedHorzY, $HorzWidth, $HorzHeight)
-        Write-Host "Drew horizontal monitor outline at: ($normalizedHorzX, $normalizedHorzY) size: ${HorzWidth}x${HorzHeight}" -ForegroundColor Red
+        # # Draw horizontal monitor outline
+        # $canvasGraphics.DrawRectangle($outlinePen, $normalizedHorzX, $normalizedHorzY, $HorzWidth, $HorzHeight)
+        # Write-Host "Drew horizontal monitor outline at: ($normalizedHorzX, $normalizedHorzY) size: ${HorzWidth}x${HorzHeight}" -ForegroundColor Red
 
-        # Draw vertical monitor outline  
-        $canvasGraphics.DrawRectangle($outlinePen, $normalizedVertX, $normalizedVertY, $VertWidth, $VertHeight)
-        Write-Host "Drew vertical monitor outline at: ($normalizedVertX, $normalizedVertY) size: ${VertWidth}x${VertHeight}" -ForegroundColor Red
+        # # Draw vertical monitor outline  
+        # $canvasGraphics.DrawRectangle($outlinePen, $normalizedVertX, $normalizedVertY, $VertWidth, $VertHeight)
+        # Write-Host "Drew vertical monitor outline at: ($normalizedVertX, $normalizedVertY) size: ${VertWidth}x${VertHeight}" -ForegroundColor Red
 
-        $outlinePen.Dispose()
+        # $outlinePen.Dispose()
 
-        # Save outline version for debugging
-        $timestamp = Get-Date -Format "yyyyMMdd_HHmmss_fff"
-        $tempDir = [System.IO.Path]::GetTempPath()
-        $outlinePath = Join-Path $tempDir "composite_outline_${timestamp}.png"
-        $canvas.Save($outlinePath, [System.Drawing.Imaging.ImageFormat]::Png)
-        Write-Host "DEBUG: Saved outline composite to: $outlinePath" -ForegroundColor Magenta
+        # # Save outline version for debugging
+        # $timestamp = Get-Date -Format "yyyyMMdd_HHmmss_fff"
+        # $tempDir = [System.IO.Path]::GetTempPath()
+        # $outlinePath = Join-Path $tempDir "composite_outline_${timestamp}.png"
+        # $canvas.Save($outlinePath, [System.Drawing.Imaging.ImageFormat]::Png)
+        # Write-Host "DEBUG: Saved outline composite to: $outlinePath" -ForegroundColor Magenta
 
         # Select and process horizontal image
         $horizontalImagePath = $null
@@ -527,9 +530,6 @@ try {
         Remove-Item -Path "$($env:TEMP)\*.png" -ErrorAction SilentlyContinue -Force 
         Start-Sleep $sleepDuration
     }    
-    Write-Host "`n=== Process Complete ===" -ForegroundColor Magenta
-    Write-Host "Your composite wallpaper has been saved to: $OutputImagePath" -ForegroundColor Green
-    Write-Host "You can now preview it and if satisfied, uncomment the wallpaper setting code." -ForegroundColor Yellow
 }
 catch {
     Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
