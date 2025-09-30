@@ -24,6 +24,8 @@ echo "Script started at $(date)"
 # Initialize the previous number with a value that cannot match any valid index (e.g., -1).
 previousNumber=-1
 
+beginning=0
+
 check_wallpaper_tools() {
     local missing=()
 
@@ -72,7 +74,11 @@ IncaseVerticalMonitor() {
 
     # Function to set wallpaper for MATE
     set_mate_wallpaper() {
-   		gsettings set org.mate.background show-desktop-icons true
+        if [[ $beginning -gt 0 ]]; then
+   		    gsettings set org.mate.background show-desktop-icons true
+            beginning=$(($beginning-1))
+            echo "ensuring gsettings doesn't run more than once. $beginning Updated"
+        fi
         gsettings set org.mate.background picture-filename "$set_walpaper"
         gsettings set org.mate.background picture-options 'zoom'
     }
@@ -114,8 +120,12 @@ IncaseVerticalMonitor() {
                 # if vertical monitor rotate the wallpaper to fit the vertical monitor.
                 convert "$set_walpaper" -rotate 90 "$tmp_wallpaper"
             fi
-            gsettings set org.mate.background show-desktop-icons false
-            killall caja
+            if [[ $beginning -lt 1 ]]; then
+                gsettings set org.mate.background show-desktop-icons false
+                killall caja
+                beginning=$(($beginning+1))
+                echo "gsettings command only runs once. $beginning updated"
+            fi
             xwallpaper --zoom $set_walpaper
             xwallpaper --output $con_monitor_name --zoom "$tmp_wallpaper"
 
@@ -181,5 +191,11 @@ while true; do
     IncaseVerticalMonitor $set_walpaper
 
     # Wait 5 minutes before changing the wallpaper again.
-    sleep 30
+    if [[ $beginning -lt 2 ]]; then
+        echo "Waiting 30 seconds before changing the wallpaper again..."
+        $beginning=$(($beginning+1))
+        sleep 30
+    else 
+        sleep 300
+    fi
 done
