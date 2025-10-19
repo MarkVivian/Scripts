@@ -169,7 +169,6 @@ IncaseVerticalMonitor() {
 }
 
 while true; do
-
     # Get the number of images in the walpapers so that any update to the images folder is tracked.
     NumberOfWalpapers=${#walpapers[@]}
 
@@ -191,9 +190,8 @@ while true; do
     IncaseVerticalMonitor $set_walpaper
 
     # Wait 5 minutes before changing the wallpaper again.
-    if [[ $beginning -lt 2 ]]; then
+    if [[ $beginning -lt 1 ]]; then
         echo "Waiting 30 seconds before changing the wallpaper again..."
-        $beginning=$(($beginning+1))
         sleep 30
     else 
         sleep 300
