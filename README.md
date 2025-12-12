@@ -56,6 +56,7 @@ Scripts/
         ├── installingOffice.exe
         ├── get_wifi_passwords_parallel_processing.exe
         ├── sort_and_remove_redundancy_password_file.exe
+        |── fixingOfficeActivation.exe
         └── startup.exe
 ```
 
@@ -93,7 +94,7 @@ Scripts/
 - Smart job allocation based on profile count
 - Secure password extraction with proper formatting
 
-#### 🔧 fixing_office_activation.ps1
+#### 🔧 [fixing_office_activation.ps1](./powershell/fixing_office_activation.md)
 **Office Activation Troubleshooter**
 - Resolves common Office activation failures
 - Automated license repair and reset procedures

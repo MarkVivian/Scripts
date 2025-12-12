@@ -3,7 +3,7 @@ try {
     $fileName = "OSPPREARM.EXE"
 
     # Define the directories to search in
-    $directories = @("C:\Program Files", "C:\Program Files (x86)")
+    $directories = @($env:ProgramFiles, ${env:ProgramFiles(x86)})
 
     # Initialize a variable to store the file path if found
     $filePathWithName = $null
@@ -55,17 +55,17 @@ try {
             Invoke-Expression -Command "$cscript_command; $cscript_activation"
 
         }else{  
-            Write-Host "Invalid file location." -ForegroundColor Red
+            Read-Host "Invalid file location. `n Please enter to exit " 
             exit 1
         }
 
     }else {
-        Write-Host "Internet connection is not available. Please connect to the Internet" -ForegroundColor Red
+        Read-Host "Internet connection is not available. Please connect to the Internet and run again. "  
         exit 1
     }
 
-}
-finally {
-    # Reset the execution policy back to the original policy
-    Set-ExecutionPolicy -Scope Process -ExecutionPolicy Restricted
+}catch{
+    Write-Host "An error occurred: $_" -ForegroundColor Red
+    Read-Host "Press Enter to exit..."
+    exit 1
 }

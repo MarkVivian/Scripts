@@ -18,8 +18,8 @@ function DialogBox{
     $openDialog.CheckPathExists = $true
     $openDialog.InitialDirectory = $env:USERPROFILE
     $openDialog.Title = $message
-    $openDialog.CheckFileExists = $false
     $openDialog.ValidateNames = $false
+    $openDialog.Filter =  "Text files (*.txt)|*.txt"
     if($folder){
         $openDialog.FileName = "SelectFolder"      # trick
     }

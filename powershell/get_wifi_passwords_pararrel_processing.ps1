@@ -11,7 +11,6 @@ if ($DebugMode) {
     $DebugPreference = "Continue"
 } 
 
-
 class ServerInfo {
     [String] $profile_name
     [String] $profile_key

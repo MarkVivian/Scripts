@@ -1,35 +1,34 @@
-function path_dialog{
+function DialogBox{
+    param(
+        [parameter(Mandatory=$true)]
+        [string]$message
+    )
     # Add .NET Windows Forms assembly to use graphical components
     Add-Type -AssemblyName System.Windows.Forms
+    Add-Type -AssemblyName System.IO 
 
     # Create a new OpenFileDialog instance
-    $fileBrowser = New-Object System.Windows.Forms.OpenFileDialog
-
-    # Set the dialog's initial directory to the provided path
-    $fileBrowser.InitialDirectory = $env:USERPROFILE
-
-    # Set the dialog's filter to only allow txt files
-    $fileBrowser.Filter = "Text files (*.txt)|*.txt"
-
-    # Set the dialog's title
-    $fileBrowser.Title = "Open a txt file with usernames and passwords."
-
-    # Set the dialog's multi-select option to false (only allow one file to be selected)
-    $fileBrowser.Multiselect = $false
-
+    $openDialog = New-Object System.Windows.Forms.OpenFileDialog
+    $openDialog.CheckFileExists = $true 
+    $openDialog.CheckPathExists = $true
+    $openDialog.InitialDirectory = $env:USERPROFILE
+    $openDialog.Title = $message
+    $openDialog.ValidateNames = $true
+ 
     # Show the dialog and check if the user clicked "OK"
-    if ($fileBrowser.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
-        # Return the selected folder path
-        return $fileBrowser.FileName
+    if ($openDialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
+        # Return the selected file path
+        return $openDialog.FileName
     } else {
-        # Write an error and exit if no folder was selected
+        # Write an error and exit if no file was selected
         Write-Error "No file selected. Exiting script."
+        Read-Host "Press Enter to exit..."
         exit 1
     }
 }
 
-$path_to_file = path_dialog
-
+$path_to_file = DialogBox -message "Open a txt file with usernames and passwords"
+Write-Host $path_to_file -ForegroundColor Green
 # Define a class to hold profile information(ServerInfo).
 class ServerInfo{
     [string] $profile_name
@@ -122,11 +121,12 @@ if (Test-Path $path_to_file){
         }
 
         Write-Host "you have successfully removed redundancy and sorted the file"
-    }finally{
-        # Reset the execution policy back to the original policy
-        Set-ExecutionPolicy -Scope Process -ExecutionPolicy Restricted
+    }catch{
+        Write-Host "and error occured $_" -ForegroundColor Red
+        Read-Host "Press any key to continue"
+        exit 1
     }
 }else{
-    Write-Host "File does not exist. " -ForegroundColor Red
+    Read-Host "File does not exist. `n press any key to continue"
     exit 1
 }

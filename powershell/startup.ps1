@@ -1,27 +1,67 @@
 # the script will be passed here 
 param(
-    [string]$pathToScript
+    # [parameter(Mandatory=$true)]
+    [string]$pathToScript = "$env:USERPROFILE\Desktop\Scripts\powershell\test_startUp.ps1"
 )
 
-# checking if the path to the script is provided. if not, it will print an error
-if($pathToScript.Length -gt 0) {
-    # check if the script exists.
-    if (-not (Test-Path $pathToScript)){
-        Write-Host "The script does not exist `n $($pathToScript) `n Exiting"
 
-        # exits teh entire script.
-        exit -1
-    }else{
-        # if the script exists, i want to extrapolate the path so as to ensure both ~ and ./ are understood.
-        $pathToScript = Resolve-Path $pathToScript
-    }
-}else{
-    Write-Host "please pass the path to the script to be executed `n e.g. `n defender_startup.ps1 /path/to/script " -ForegroundColor Red
-    exit -1
-}
+# function DialogBox{
+#     param(
+#         [parameter(Mandatory=$true)]
+#         [string]$message
+#     )
+#     # Add .NET Windows Forms assembly to use graphical components
+#     Add-Type -AssemblyName System.Windows.Forms
+#     Add-Type -AssemblyName System.IO 
+
+#     # Create a new OpenFileDialog instance
+#     $openDialog = New-Object System.Windows.Forms.OpenFileDialog
+#     $openDialog.CheckFileExists = $true 
+#     $openDialog.CheckPathExists = $true
+#     $openDialog.InitialDirectory = $env:USERPROFILE
+#     $openDialog.Title = $message
+#     $openDialog.ValidateNames = $true
+ 
+#     # Show the dialog and check if the user clicked "OK"
+#     if ($openDialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
+#         # Return the selected file path
+#         return $openDialog.FileName
+#     } else {
+#         # Write an error and exit if no file was selected
+#         Write-Host "No file selected. Exiting script." -ForegroundColor Red
+#         Read-Host "Press Enter to exit..."
+#         exit 1
+#     }
+# }
+
+
+# # checking if the path to the script is provided. if not, it will print an error
+# if($pathToScript.Length -gt 0) {
+#     # check if the script exists.
+#     if (-not (Test-Path $pathToScript)){
+#         Write-Host "The script does not exist `n $($pathToScript) `n Exiting"
+#         Read-Host "Press Enter to exit..."
+#         # exits teh entire script.
+#         exit -1
+#     }else{
+#         # if the script exists, i want to extrapolate the path so as to ensure both ~ and ./ are understood.
+#         $pathToScript = Resolve-Path $pathToScript
+#     }
+# }else{
+#     $pathToScript = DialogBox "Select the script you want to run at startup"
+#     if(-not $pathToScript){
+#         Write-Host "No script selected. Exiting." -ForegroundColor Red
+#         Read-Host "Press Enter to exit..."
+#         exit 1
+#     }
+#     # Write-Host "please pass the path to the script to be executed `n e.g. `n defender_startup.ps1 /path/to/script " -ForegroundColor Red
+#     # Read-Host "Press Enter to exit..."
+#     # exit 1
+# }
+
 
 # This function will put your Script to start up.
-function startUp {
+function TaskSchedular {
     param (
         $Script
     )
@@ -43,6 +83,7 @@ function startUp {
         }
     }catch { 
         Write-Host "Error getting scheduled tasks: $_" -ForegroundColor Red
+        Read-Host "Press Enter to exit..."
         exit 1
     }
 
@@ -62,7 +103,8 @@ function startUp {
     foreach ($task in $current_task_names){
         if ($task.TaskName.ToString().ToLower() -eq $trimed_taskName.ToLower()){
             Write-Host "Task name '$trimed_taskName' already exists. Please choose a different name." -ForegroundColor Red
-            exit -1
+            Read-Host "Press Enter to exit..."
+            exit 1
         }
     }     
 
@@ -85,18 +127,80 @@ function startUp {
         Write-Host "If you wish to confirm go to task scheduler and refresh and you should see a folder named $taskPath containing your scripts" -ForegroundColor Green
     } catch {
         Write-Host "Failed to create scheduled task: $_" -ForegroundColor Red
-    }
-}
-
-$choice=Read-Host " `n 1) add to start-up `n "
-
-switch($choice){
-    "1" {
-        startUp $pathToScript
-    }
-    default {
-        Write-Host "invalid input provided..." -ForegroundColor Red
+        Read-Host "Press Enter to exit..."
         exit 1
     }
 }
 
+function Services{
+    param (
+        $Script
+    )
+    Write-Host "Service function called with script: $Script" -ForegroundColor Green
+    # Add your code for option 2 here
+}
+
+function StartupFolder{
+    param (
+        $Script
+    )
+    Write-Host "StartupFolder function called with script: $Script" -ForegroundColor Green
+    # Add your code for option 3 here
+}
+
+function Registry{
+    param (
+        $Script
+    )
+    Write-Host "Registry function called with script: $Script" -ForegroundColor Green
+    # Add your code for option 4 here
+}
+
+function WMIEventSubscription{
+    param (
+        $Script
+    )
+    Write-Host "WMIEventSubscription function called with script: $Script" -ForegroundColor Green
+    # Add your code for option 5 here
+}
+
+# Write-Host "Choose an option for start-up execution: 
+# `n 1) Task Scheduler (recommended) 
+# `n 2) Service 
+# `n 3) startup folder 
+# `n 4) Registry 
+# `n 5) WMI event subscription
+# `n 6) All options
+# " -ForegroundColor Green
+
+# $choice=Read-Host " `n Enter your choice (1-5): "
+
+# switch($choice){
+#     "1" {
+#         TaskSchedular $pathToScript
+#     }
+#     "2" {
+#         Services $pathToScript
+#     }
+#     "3" {
+#         StartupFolder $pathToScript
+#     }
+#     "4" {
+#         Registry $pathToScript
+#     }
+#     "5" {
+#         WMIEventSubscription $pathToScript
+#     }
+#     "6" {
+#         TaskSchedular $pathToScript
+#         Services $pathToScript
+#         StartupFolder $pathToScript
+#         Registry $pathToScript
+#         WMIEventSubscription $pathToScript
+#     }
+#     default {
+#         Write-Host "invalid input provided..." -ForegroundColor Red
+#         Read-Host "Press Enter to exit..."
+#         exit 1
+#     }
+# }
