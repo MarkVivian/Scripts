@@ -5,9 +5,9 @@ param(
     
     [Parameter(Mandatory = $true)]
     [string] $OutputImagePath,
-        
+    
     [switch] $DebugMode,
-
+    
     [Parameter()]
     [int] $sleepDuration = 300
 )
@@ -23,7 +23,7 @@ if ($DebugMode) {
     $DebugPreference = "Continue"
 }
 
-function MonitorAllocation{
+function MonitorAllocation {
     $monitor_virtual = [System.Windows.Forms.SystemInformation]::VirtualScreen
 
     $Monitor_data = [PSCustomObject]@{
@@ -92,10 +92,9 @@ function Get-ImageDimensions {
 
 function Find-SuitableImages {
     param(
-        [string] $Directory,
-        [double] $ThresholdRatio
+        [string] $Directory
     )
-    
+
     Write-Host "Scanning for images in: $Directory" -ForegroundColor Yellow
     
     $imageExtensions = @("*.jpg", "*.jpeg", "*.png")
@@ -140,12 +139,38 @@ function Find-SuitableImages {
     Write-Host "Classification Results:" -ForegroundColor Cyan
     Write-Host "  Vertical-oriented images: $($verticalImages.Count)" -ForegroundColor Green
     Write-Host "  Horizontal-oriented images: $($horizontalImages.Count)" -ForegroundColor Green
-    
-    return @{
+
+    $image_data = [PSCustomObject]@{
         Vertical = $verticalImages
         Horizontal = $horizontalImages
         not_fit = $not_fit
         count = $allImages.Count
+        ModificationDate = (Get-Item $Directory).LastWriteTime
+    }
+
+    Export-Clixml -InputObject $image_data -Path $xml_name -Depth 5 
+    Write-Debug "Cached picture information to $HOME\Documents\picture_information.xml"
+    return $image_data
+}
+
+function XmlManipulation {
+    param (
+        [string] $Directory
+    )
+    $xml_name = "$HOME\Documents\picture_information.xml"
+    if (Test-Path $xml_name){
+        $FolderModification = (Get-Item $Directory).LastWriteTime
+        Write-Host "Loading cached picture information from $xml_name" -ForegroundColor Yellow
+        $xml_data = Import-Clixml -Path $xml_name
+        if ($FolderModification -gt $xml_data.ModificationDate){
+            Write-Host "Directory has been modified since last scan. Rescanning..." -ForegroundColor Yellow
+            return Find-SuitableImages -Directory $Directory
+        }else{
+            Write-Host "Using cached picture information." -ForegroundColor Green
+            return $xml_data
+        }
+    }else{
+        return Find-SuitableImages -Directory $Directory
     }
 }
 
@@ -245,7 +270,7 @@ function Resize-ImageToFit {
 
 function CreateCompositeWallpaper {
     param(
-        [hashtable] $Images,
+        [System.Object] $Images,
         [int] $HorzWidth,
         [int] $HorzHeight,
         [int] $VertWidth,
@@ -314,7 +339,7 @@ function CreateCompositeWallpaper {
 
         # Select and process horizontal image
         $horizontalImagePath = $null
-        $count_math = [math]::Floor($totalImgCount / 2)
+        $count_math = [math]::Floor($totalImgCount / 10)
         if ($Images.Horizontal.Count -gt $count_math) {
             $horizontalImagePath = ($Images.Horizontal | Get-Random).Path
             Write-Host "Selected horizontal image: $(Split-Path $horizontalImagePath -Leaf)" -ForegroundColor Cyan
@@ -322,6 +347,7 @@ function CreateCompositeWallpaper {
             Write-Host "No suitable horizontal images found, will use vertical image rotated" -ForegroundColor Yellow
             if ($Images.Vertical.Count -gt 0) {
                 $horizontalImagePath = ($Images.Vertical | Get-Random).Path
+                Write-Host "Selected vertical image for horizontal monitor: $(Split-Path $horizontalImagePath -Leaf)" -ForegroundColor Cyan
             }
         }
 
@@ -334,6 +360,7 @@ function CreateCompositeWallpaper {
             Write-Host "No suitable vertical images found, will use horizontal image rotated" -ForegroundColor Yellow
             if ($Images.Horizontal.Count -gt 0) {
                 $verticalImagePath = ($Images.Horizontal | Get-Random).Path
+                Write-Host "Selected horizontal image for vertical monitor: $(Split-Path $verticalImagePath -Leaf)" -ForegroundColor Cyan
             }
         }
 
@@ -507,14 +534,23 @@ try {
     if (-not (Test-Path $PicturesPath)) {
         throw "Pictures directory does not exist: $PicturesPath"
     }
+
+    # check if there is an image in the $OutputImagePath, if not create it
     $OutputImagePath = (Resolve-Path $OutputImagePath).Path
-    if (-not (Test-Path $OutputImagePath)) {
-        Write-Host "Creating output directory: $OutputImagePath" -ForegroundColor Yellow
-        New-Item -Path $OutputImagePath -ItemType Directory -Force | Out-Null
+    if (! $(Test-Path $OutputImagePath -PathType Leaf)) {
+        Write-Host "Output path is a file: $OutputImagePath" -ForegroundColor White
+        $timestamp = Get-Date -Format "yyyyMMdd_HHmmss_fff"
+        $OutputImagePath = Join-Path $OutputImagePath "composite_wallpaper_${timestamp}.png"
+        Write-Host "Output path is a directory; using filename: $OutputImagePath" -ForegroundColor White
     }
     
+    # if (-not (Test-Path $OutputImagePath)) {
+    #     Write-Host "Creating output directory: $OutputImagePath" -ForegroundColor Yellow
+    #     New-Item -Path $OutputImagePath -ItemType Directory -Force | Out-Null
+    # }
+    
     # Find suitable images
-    $images = Find-SuitableImages -Directory $PicturesPath -ThresholdRatio $AspectRatioThreshold
+    $images = XmlManipulation -Directory $PicturesPath 
     
     if ($images.Vertical.Count -eq 0 -and $images.Horizontal.Count -eq 0) {
         throw "No suitable images  found in the specified directory"
@@ -535,3 +571,4 @@ catch {
     Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
     exit 1
 }
+# 

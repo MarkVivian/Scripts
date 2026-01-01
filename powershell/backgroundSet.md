@@ -36,6 +36,8 @@ A PowerShell script that automatically creates and sets composite wallpapers for
 - ✅ **Automatic Monitor Detection** - Discovers monitor layout, positions, and orientations
 - ✅ **Smart Image Classification** - Separates vertical and horizontal oriented images
 - ✅ **Intelligent Image Selection** - Chooses appropriate images for each monitor
+- ✅ **Image Caching** - Caches classified images in XML for faster subsequent runs
+- ✅ **Intelligent Rotation** - Automatically rotates images with temporary file inspection
 - ✅ **Automatic Image Rotation** - Rotates images when no suitable orientation is available
 - ✅ **Composite Wallpaper Creation** - Builds single wallpaper spanning multiple monitors
 - ✅ **Position Normalization** - Handles negative monitor coordinates correctly
@@ -113,7 +115,7 @@ A PowerShell script that automatically creates and sets composite wallpapers for
 
 ### `-sleepDuration` (Optional)
 - **Type:** `int`
-- **Default:** `10` (seconds)
+- **Default:** `300` (5 minutes)
 - **Description:** Time interval between wallpaper changes in continuous mode
 - **Minimum:** 1 second (not recommended)
 - **Recommended:** 30-300 seconds
@@ -160,6 +162,13 @@ A PowerShell script that automatically creates and sets composite wallpapers for
 .\backgroundSet.ps1 -PicturesPath "C:\Pictures" -OutputImagePath "$env:TEMP\wallpaper_test.png" -DebugMode
 ```
 
+### Using Cached Image Information
+```powershell
+# Second run uses cached classification (much faster)
+.\backgroundSet.ps1 -PicturesPath "C:\Pictures" -OutputImagePath "C:\Wallpapers\desktop.png" -sleepDuration 120
+# The script automatically detects changes in the pictures directory and rescans if needed
+```
+
 ## Monitor Detection
 
 The script automatically detects and analyzes your monitor configuration:
@@ -192,6 +201,24 @@ Example Layout:
 └─────────────┘
 ```
 
+### Position Normalization Example
+```
+Physical Layout:                Virtual Screen Space:
+┌─────────────────────────┐     ┌─────────────┬──────────────────────────────────┐
+│  Monitor 1  │  Monitor 2      │  Monitor 1  │  Monitor 2                       │
+│  (-1080, 0) │(0, 0)           │  (0, 0)     │  (1080, 0)                       │
+│ 1080x1920   │1920x1080        │ 1080x1920   │  1920x1080                       │
+│             │                 │             │                                  │
+│             │                 │             │                                  │
+│             │                 │             │                                  │
+│             │                 │             │                                  │
+└─────────────┴─────────────────┘ └─────────────┴──────────────────────────────────┘
+
+Normalized Monitor 1:        Normalized Monitor 2:
+X = |(-1080) - (-1080)| = 0   X = |0 - (-1080)| = 1080
+Y = |0 - 0| = 0               Y = |0 - 0| = 0
+```
+
 ## Image Classification
 
 ### Classification Criteria
@@ -203,28 +230,59 @@ Images are automatically classified based on aspect ratio:
 | > 1.7 | **Horizontal** | 1920x1080, 2560x1440, 16:9 |
 | 0.6 - 1.7 | **Not Suitable** | 1024x1024, 4:3, square |
 
-### Smart Selection Logic
-1. **Perfect Match:** Uses vertical images for vertical monitors, horizontal for horizontal
-2. **Rotation Fallback:** Rotates horizontal images for vertical monitors if needed
-3. **Random Selection:** Chooses randomly from suitable images each cycle
-4. **Fallback Handling:** Uses any available image with rotation if no perfect matches
+### Caching Mechanism
+The script uses XML caching to improve performance on subsequent runs:
+
+- **Cache Location:** `$HOME\Documents\picture_information.xml`
+- **Cache Contents:** Classification results, image dimensions, aspect ratios
+- **Automatic Update:** Script detects directory modifications and rescans if needed
+- **Speed Improvement:** First run scans all images; subsequent runs load from cache (~10x faster)
+- **Manual Refresh:** Delete the XML file to force a rescan on next run
 
 ## Composite Creation Process
 
 ### Step-by-Step Process
-1. **Canvas Creation:** Creates canvas matching virtual screen size
-2. **Coordinate Normalization:** Converts negative positions to positive canvas coordinates
-3. **Debug Outline:** Draws colored rectangles showing monitor boundaries
-4. **Image Processing:** Loads, rotates (if needed), and resizes images
-5. **Positioning:** Centers images within their respective monitor areas
-6. **Composition:** Draws all elements onto single canvas
-7. **Saving:** Exports as high-quality PNG
+1. **Canvas Creation:** Creates canvas matching virtual screen size (includes negative coordinate space)
+2. **Coordinate Normalization:** Converts negative monitor positions to positive canvas coordinates
+   - Example: If Monitor 1 is at (-1080, 0), normalizes to relative position (0, 0) on canvas
+3. **Image Selection:** Randomly selects suitable images for each monitor based on classification
+4. **Image Processing:** For each monitor:
+   - Loads source image from file
+   - Determines if rotation is needed (based on available suitable images)
+   - Calls `Resize-ImageToFit` to resize and rotate if necessary
+5. **Positioning:** Centers processed image within its monitor's area
+6. **Composition:** Draws all processed images onto single canvas with high-quality settings
+7. **Saving:** Exports final composite as PNG with size verification
+8. **Cleanup:** Removes temporary debug files (if not in debug mode)
 
 ### Quality Settings
 - **Interpolation:** HighQualityBicubic for smooth scaling
 - **Compositing:** HighQuality mode for best blending
 - **Smoothing:** HighQuality anti-aliasing
+- **Pixel Offset:** HighQuality for precise positioning
 - **Format:** PNG for lossless compression
+
+### Image Resize Function (`Resize-ImageToFit`)
+Handles intelligent image scaling and rotation:
+
+```powershell
+Resize-ImageToFit -SourceImage <Image> -TargetWidth <int> -TargetHeight <int> -RotateIfNeeded <bool>
+```
+
+**Parameters:**
+- `SourceImage`: Source System.Drawing.Image object
+- `TargetWidth`: Target width in pixels
+- `TargetHeight`: Target height in pixels  
+- `RotateIfNeeded`: If true, rotates source 90 degrees before resizing
+
+**Process:**
+1. Saves original source to temp file for debugging
+2. If rotation needed: Creates bitmap copy, rotates 90°, saves rotated version
+3. Calculates scale factor while preserving aspect ratio
+4. Computes new dimensions to fit within target size
+5. Creates high-quality resized bitmap with graphics context
+6. Saves final resized image to temp file for inspection
+7. Returns resized bitmap ready for composition
 
 ## Continuous Mode
 
@@ -279,6 +337,43 @@ The script draws colored outlines showing exactly where each monitor area is pos
 - **Different colors** for horizontal vs vertical monitors
 - **Coordinate labels** show exact positioning
 
+## Before First Run: Essential Setup Information
+
+### Required Setup Steps
+1. **Verify Monitor Configuration:**
+   ```powershell
+   # Check if your monitors are properly detected
+   [System.Windows.Forms.Screen]::AllScreens | ForEach-Object { 
+       Write-Host "Monitor: $($_.DeviceName) - $($_.Bounds.Width)x$($_.Bounds.Height)" 
+   }
+   ```
+
+2. **Prepare Image Library:**
+   - Ensure you have JPG/PNG images in your pictures directory
+   - Need images with aspect ratios:
+     - **Vertical monitors:** Images with aspect ratio < 0.6 (e.g., 1080x1920)
+     - **Horizontal monitors:** Images with aspect ratio > 1.7 (e.g., 1920x1080)
+   - First run will classify all images automatically
+
+3. **Set PowerShell Execution Policy:**
+   ```powershell
+   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
+   ```
+
+4. **Run with Administrator Privileges (Recommended):**
+   - Right-click PowerShell > Run as Administrator
+   - Required for registry modifications and system integration
+
+### First Run Behavior
+First execution will:
+1. Scan all images in the pictures directory (may take time)
+2. Classify images by orientation
+3. Create cache file: `$HOME\Documents\picture_information.xml`
+4. Generate initial composite wallpaper
+5. Set wallpaper to "Span" mode
+
+Subsequent runs will be much faster by using cached classification.
+
 ## Troubleshooting
 
 ### Common Issues
@@ -291,6 +386,7 @@ Error: No suitable images found in the specified directory
 - Verify path exists and contains JPG/PNG files
 - Check if images meet aspect ratio requirements (< 0.6 or > 1.7)
 - Use `-DebugMode` to see classification results
+- Ensure at least 10% of images fit preferred orientation, or they'll be rotated
 
 #### Wallpaper Not Spanning Correctly
 ```
@@ -304,11 +400,13 @@ Wallpaper appears zoomed/cropped on one monitor
 #### Permission Errors
 ```
 Error: Cannot create output directory
+Error: Failed to set registry values for wallpaper mode
 ```
 **Solutions:**
 - Run PowerShell as Administrator
 - Choose output path in user directory
 - Verify write permissions on target folder
+- Check if wallpaper registry key is accessible: `HKCU:\Control Panel\Desktop`
 
 #### Monitor Detection Issues
 ```
@@ -337,10 +435,18 @@ Wrong monitor orientation detected
 
 ### Debug Checklist
 1. **Run with `-DebugMode`** to see detailed processing
+   ```powershell
+   .\backgroundSet.ps1 -PicturesPath "C:\Pictures" -OutputImagePath "C:\Wallpapers\test.png" -DebugMode
+   ```
 2. **Check temp directory** for debug images: `$env:TEMP`
+   - `step1_original_*.png` - Original source image
+   - `step2_rotated_*.png` - After rotation (if applied)
+   - `step3_resized_*.png` - Final resized image
 3. **Verify monitor detection** in debug output
-4. **Examine outline composite** to confirm positioning
-5. **Check Windows wallpaper settings** for "Span" mode
+4. **Check Windows wallpaper settings** for "Span" mode
+5. **Inspect cache file** if images aren't updating:
+   - Delete `$HOME\Documents\picture_information.xml` to force rescan
+   - Verify file modification time matches your pictures directory
 
 ## Performance Considerations
 
@@ -409,7 +515,8 @@ This project is licensed under the MIT License. See LICENSE file for details.
 
 ---
 
-**Version:** 2.0  
-**Last Updated:** September 2025  
+**Version:** 2.1  
+**Last Updated:** January 2026  
 **Compatibility:** Windows 10/11, PowerShell 5.1+  
-**Monitor Support:** Dual monitor horizontal/vertical configurations
+**Monitor Support:** Dual monitor horizontal/vertical configurations  
+**Cache System:** XML-based image classification caching for improved performance
