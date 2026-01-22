@@ -85,6 +85,7 @@ try {
         exit 1
     }
 
+
     # Define the path for the output file
     $outputFile = Join-Path $(Resolve-Path $custom_path) "WifiProfilesAndKeys.txt"
 
